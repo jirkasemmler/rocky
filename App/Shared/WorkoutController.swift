@@ -146,7 +146,10 @@ final class WorkoutController {
         switch message {
         case let .workoutStarted(id, workoutID, intervals, rounds, kind, startedAt, from) where from != origin:
             guard stage != .running else { return }
-            start(workoutID: workoutID, intervals: intervals, roundsOverride: rounds, kind: kind, weight: weight,
+            // `rounds` is the plan's total; only a value different from the intervals is an override
+            // (shortened version). Passing it unconditionally made every mirrored workout "shortened".
+            let override = rounds == intervals.rounds ? nil : rounds
+            start(workoutID: workoutID, intervals: intervals, roundsOverride: override, kind: kind, weight: weight,
                   pre: [], sessionID: id, startedAt: startedAt, broadcast: false)
         case let .command(id, command, at, from) where from != origin && id == sessionID:
             guard let runner, stage == .running else { return }
