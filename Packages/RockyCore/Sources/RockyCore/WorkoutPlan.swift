@@ -80,9 +80,8 @@ public struct WorkoutPlan: Sendable, Equatable {
                 }
             }
         }
-        if iv.stretchSeconds > 0 {
-            drafts.append(Draft(kind: .stretch, duration: iv.stretchSeconds, round: nil, exerciseIndex: nil))
-        }
+        // Fixed 2-minute stretch closes every workout (also the shortened version).
+        drafts.append(Draft(kind: .stretch, duration: IntervalSettings.stretchSeconds, round: nil, exerciseIndex: nil))
 
         var phases: [Phase] = []
         phases.reserveCapacity(drafts.count)

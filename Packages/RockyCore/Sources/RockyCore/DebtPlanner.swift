@@ -144,8 +144,10 @@ public struct PlannerHistory: Sendable, Equatable {
 /// - Postponing needs a reason. Illness/injury clear all debt and make the next workout an easy
 ///   (shortened) return. Travel excuses the day (its slot is not missed, debt does not age) but
 ///   keeps the debt.
-/// - Reminders on a due day: at the set hour; on catch-up days also +1 h and +2 h, never later
-///   than `latestEscalation` (22:30). No reminders once the day's workout is done.
+/// - Catch-up works on ANY day, planned or not: a Wednesday miss is due on Thursday (a rest day).
+/// - Reminders on a due day: at the set hour; on every day with outstanding debt also +1 h and
+///   +2 h, never later than `latestEscalation` (22:30). Planned days without debt escalate only
+///   with `settings.escalateOnPlannedDays`. No reminders once the day's workout is done.
 /// - Streak: consecutive Monday-first weeks where all 3 slots were done on time or caught up
 ///   within the same week. Weeks with an excused slot or a partial first week are neutral.
 public struct DebtPlanner: Sendable {
@@ -234,6 +236,8 @@ public struct DebtPlanner: Sendable {
     private func reminders(for rec: DayRecord) -> [Reminder] {
         guard let due = rec.due, rec.completedWorkout == nil, rec.postponed == nil else { return [] }
         let isCatchUp = due.kind == .catchUp
+        // Debt days always escalate (confirmed by Jiri, 2026-11-03); the toggle only covers
+        // planned / easy-return days without debt.
         let escalate = isCatchUp || settings.escalateOnPlannedDays
         let name = LocalizedText.workoutName(due.workoutID)
         let suffix = due.isShortened ? " Zkrácená verze (\(DebtPlanner.shortenedRounds) kola)." : ""
@@ -249,7 +253,7 @@ public struct DebtPlanner: Sendable {
                 body = "Dnešní trénink ještě čeká.\(suffix)"
             case (true, 0):
                 title = "Dohon: \(name)"
-                body = "Včera jsi trénink vynechal. Dnes nahrazuje plánovaný trénink.\(suffix)"
+                body = "\(missedPhrase(rec)) \(rec.isSlot ? "Dnes nahrazuje plánovaný trénink." : "Dnes máš volno, ideální den na dohnání.")\(suffix)"
             case (true, 1):
                 title = "Dohon stále čeká: \(name)"
                 body = "Ještě je čas, stačí 20 minut.\(suffix)"
@@ -466,6 +470,26 @@ public struct DebtPlanner: Sendable {
         let line = RockyPhrasebook.line(shortened ? .shortened : .catchUp, key: dayNumber &* 31 &+ UInt64(level),
                                         address: settings.address)
         return "\(line) \(body)"
+    }
+
+    /// "Včera jsi trénink vynechal." / "Trénink ze středy ještě čeká."
+    private func missedPhrase(_ rec: DayRecord) -> String {
+        guard let missed = rec.debtAtStart.oldestMissedDay,
+              let days = calendar.dateComponents([.day], from: missed, to: rec.day).day, days > 1,
+              let wd = Weekday(rawValue: calendar.component(.weekday, from: missed)) else {
+            return "Včera jsi trénink vynechal."
+        }
+        let from: String
+        switch wd {
+        case .monday: from = "z pondělí"
+        case .tuesday: from = "z úterý"
+        case .wednesday: from = "ze středy"
+        case .thursday: from = "ze čtvrtka"
+        case .friday: from = "z pátku"
+        case .saturday: from = "ze soboty"
+        case .sunday: from = "z neděle"
+        }
+        return "Trénink \(from) ještě čeká."
     }
 
     private func dayKey(_ day: Date) -> String {

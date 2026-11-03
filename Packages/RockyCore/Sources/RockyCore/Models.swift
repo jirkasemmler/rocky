@@ -116,32 +116,63 @@ public enum WorkoutID: String, Codable, Sendable, CaseIterable, Comparable {
 }
 
 /// Interval lengths (seconds) and round count. PRD 3.2 defaults: 40 s work, 20 s rest,
-/// 90 s between rounds, 3 rounds; PRD 3.4 warm-up 3 min; stretch is "short" (we use 2 min).
+/// 90 s between rounds, 3 rounds; PRD 3.4 warm-up 3 min.
+///
+/// Stretching is fixed at exactly 2 minutes (confirmed by Jiri, 2026-11-03) and is not a setting.
+/// Older builds stored an editable `stretchSeconds`; it is ignored on decoding and the constant is
+/// still written on encoding so an older paired build can decode new messages.
 public struct IntervalSettings: Codable, Sendable, Equatable {
+    /// Fixed length of the closing stretch.
+    public static let stretchSeconds = 120
+
     public var workSeconds: Int
     public var restSeconds: Int
     public var roundRestSeconds: Int
     public var rounds: Int
     public var warmUpSeconds: Int
-    public var stretchSeconds: Int
+    /// Always `IntervalSettings.stretchSeconds` (120 s).
+    public var stretchSeconds: Int { Self.stretchSeconds }
 
     public init(
         workSeconds: Int = 40,
         restSeconds: Int = 20,
         roundRestSeconds: Int = 90,
         rounds: Int = 3,
-        warmUpSeconds: Int = 180,
-        stretchSeconds: Int = 120
+        warmUpSeconds: Int = 180
     ) {
         self.workSeconds = workSeconds
         self.restSeconds = restSeconds
         self.roundRestSeconds = roundRestSeconds
         self.rounds = rounds
         self.warmUpSeconds = warmUpSeconds
-        self.stretchSeconds = stretchSeconds
     }
 
     public static let `default` = IntervalSettings()
+
+    private enum CodingKeys: String, CodingKey {
+        case workSeconds, restSeconds, roundRestSeconds, rounds, warmUpSeconds, stretchSeconds
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = IntervalSettings()
+        workSeconds = try c.decodeIfPresent(Int.self, forKey: .workSeconds) ?? d.workSeconds
+        restSeconds = try c.decodeIfPresent(Int.self, forKey: .restSeconds) ?? d.restSeconds
+        roundRestSeconds = try c.decodeIfPresent(Int.self, forKey: .roundRestSeconds) ?? d.roundRestSeconds
+        rounds = try c.decodeIfPresent(Int.self, forKey: .rounds) ?? d.rounds
+        warmUpSeconds = try c.decodeIfPresent(Int.self, forKey: .warmUpSeconds) ?? d.warmUpSeconds
+        // `stretchSeconds` from older builds is deliberately ignored.
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(workSeconds, forKey: .workSeconds)
+        try c.encode(restSeconds, forKey: .restSeconds)
+        try c.encode(roundRestSeconds, forKey: .roundRestSeconds)
+        try c.encode(rounds, forKey: .rounds)
+        try c.encode(warmUpSeconds, forKey: .warmUpSeconds)
+        try c.encode(Self.stretchSeconds, forKey: .stretchSeconds)
+    }
 
     /// Returns a copy clamped to sane bounds (used before building a plan).
     public func sanitized() -> IntervalSettings {
@@ -150,8 +181,7 @@ public struct IntervalSettings: Codable, Sendable, Equatable {
             restSeconds: min(max(restSeconds, 0), 600),
             roundRestSeconds: min(max(roundRestSeconds, 0), 900),
             rounds: min(max(rounds, 1), 10),
-            warmUpSeconds: min(max(warmUpSeconds, 0), 1800),
-            stretchSeconds: min(max(stretchSeconds, 0), 1800)
+            warmUpSeconds: min(max(warmUpSeconds, 0), 1800)
         )
     }
 }
@@ -476,7 +506,8 @@ public struct Settings: Codable, Sendable, Equatable {
     public var speechRate: Double
     /// Play voice on the watch speaker (otherwise watch = haptics only).
     public var watchSoundEnabled: Bool
-    /// Also escalate reminders on regular (non catch-up) days.
+    /// Also escalate reminders on regular planned days without debt (incl. easy return).
+    /// Days with outstanding debt always escalate, regardless of this toggle.
     public var escalateOnPlannedDays: Bool
     /// "Rockyho hlášky": funny, motivating flavour lines in voice, notifications and UI.
     public var rockyLinesEnabled: Bool

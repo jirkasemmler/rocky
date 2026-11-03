@@ -34,11 +34,11 @@ struct SettingsView: View {
             Section {
                 DatePicker("Připomenutí", selection: timeBinding(\.reminderTime), displayedComponents: .hourAndMinute)
                 DatePicker("Nejpozději", selection: timeBinding(\.latestEscalation), displayedComponents: .hourAndMinute)
-                Toggle("Stupňovat i v běžné dny", isOn: $draft.escalateOnPlannedDays)
+                Toggle("Stupňovat i v běžné tréninkové dny", isOn: $draft.escalateOnPlannedDays)
             } header: {
                 Text("Připomínky")
             } footer: {
-                Text("Když máš dluh, připomenutí se opakuje po hodině, nejpozději v nastavený čas.")
+                Text("Když máš dluh, připomínky chodí každý den, i ve dny volna: v nastavený čas, po hodině a po dvou, nejpozději v čas „Nejpozději“. Přepínač se týká jen běžných tréninkových dnů bez dluhu.")
             }
 
             Section("Intervaly") {
@@ -49,8 +49,7 @@ struct SettingsView: View {
                 Stepper("Kola: \(draft.intervals.rounds)", value: $draft.intervals.rounds, in: 1...5)
                 Stepper("Rozcvička: \(Format.clock(TimeInterval(draft.intervals.warmUpSeconds)))",
                         value: $draft.intervals.warmUpSeconds, in: 0...600, step: 30)
-                Stepper("Protažení: \(Format.clock(TimeInterval(draft.intervals.stretchSeconds)))",
-                        value: $draft.intervals.stretchSeconds, in: 0...600, step: 30)
+                LabeledContent("Protažení", value: "\(Format.clock(TimeInterval(IntervalSettings.stretchSeconds))) (vždy)")
             }
 
             Section {

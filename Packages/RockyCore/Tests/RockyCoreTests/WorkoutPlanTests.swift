@@ -44,11 +44,11 @@ final class WorkoutPlanTests: XCTestCase {
         XCTAssertEqual(plan.plannedDuration, 180 + 2 * 220 + 90 + 120)
     }
 
-    func testZeroRestAndNoWarmUp() {
-        let iv = IntervalSettings(workSeconds: 30, restSeconds: 0, roundRestSeconds: 0, rounds: 1, warmUpSeconds: 0, stretchSeconds: 0)
+    func testZeroRestAndNoWarmUpStillEndsWithFixedStretch() {
+        let iv = IntervalSettings(workSeconds: 30, restSeconds: 0, roundRestSeconds: 0, rounds: 1, warmUpSeconds: 0)
         let plan = WorkoutPlan(workout: WorkoutLibrary.workoutA, intervals: iv)
-        XCTAssertEqual(plan.phases.map(\.kind), [.exercise, .exercise, .exercise, .exercise])
-        XCTAssertEqual(plan.plannedDuration, 120)
+        XCTAssertEqual(plan.phases.map(\.kind), [.exercise, .exercise, .exercise, .exercise, .stretch])
+        XCTAssertEqual(plan.plannedDuration, 120 + 120)
     }
 
     func testSanitizedClampsValues() {

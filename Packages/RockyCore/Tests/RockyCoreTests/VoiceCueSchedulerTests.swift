@@ -135,7 +135,7 @@ final class VoiceCueSchedulerTests: XCTestCase {
     }
 
     func testShortPhasesDoNotProduceNegativeOffsets() {
-        let iv = IntervalSettings(workSeconds: 5, restSeconds: 2, roundRestSeconds: 0, rounds: 1, warmUpSeconds: 0, stretchSeconds: 0)
+        let iv = IntervalSettings(workSeconds: 5, restSeconds: 2, roundRestSeconds: 0, rounds: 1, warmUpSeconds: 0)
         let s = VoiceCueScheduler(plan: WorkoutPlan(workout: WorkoutLibrary.workoutA, intervals: iv))
         XCTAssertTrue(s.allCues.allSatisfy { $0.offset >= 0 })
         for (i, cues) in s.cuesByPhase.enumerated() {
