@@ -3,6 +3,7 @@ import RockyCore
 
 @main
 struct RockyWatchApp: App {
+    @WKApplicationDelegateAdaptor(WatchAppDelegate.self) private var appDelegate
     @State private var store: TrainingStore
     @State private var workout: WorkoutController
     @State private var health: WorkoutSessionService
@@ -27,10 +28,24 @@ struct RockyWatchApp: App {
             Task { await health.end(at: date, save: true) }
         }
 
+        WatchAppDelegate.onWorkoutConfiguration = { [weak workout] _ in
+            // Launched by the phone: start the HKWorkoutSession now (keeps the app running); the
+            // "workoutStarted" message with the plan follows over WatchConnectivity. If it never
+            // comes, discard the empty session after 30 s.
+            Task { @MainActor in
+                await health.start(at: Date())
+                try? await Task.sleep(for: .seconds(30))
+                if workout?.isRunning != true, workout?.stage == .idle {
+                    await health.end(at: Date(), save: false)
+                }
+            }
+        }
+
         sync.onMessage = { [weak store, weak workout] message in
             switch message {
             case let .sessionSaved(session, origin) where origin == .phone:
                 store?.save(session)
+                workout?.otherDeviceSaved(session)
             case .sessionSaved:
                 break
             case let .settingsChanged(settings):

@@ -17,6 +17,12 @@ struct WatchSummaryView: View {
                 Label(completed ? "Hotovo!" : "Ukončeno", systemImage: completed ? "checkmark.seal.fill" : "flag.checkered")
                     .font(.headline)
                     .foregroundStyle(completed ? .green : .orange)
+                if let saved = health.savedToHealth {
+                    Label(saved ? "Uloženo do Zdraví" : "Do Zdraví se neuložilo",
+                          systemImage: saved ? "heart.text.square.fill" : "exclamationmark.triangle")
+                        .font(.footnote)
+                        .foregroundStyle(saved ? .pink : .orange)
+                }
                 if health.activeEnergyKcal > 0 {
                     Text("\(Int(health.activeEnergyKcal)) kcal").font(.footnote).foregroundStyle(.secondary)
                 }

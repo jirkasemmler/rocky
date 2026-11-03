@@ -23,6 +23,8 @@ final class WorkoutSessionService: NSObject, WorkoutSessionServing {
     private(set) var heartRate: Double?
     private(set) var activeEnergyKcal: Double = 0
     private(set) var lastError: String?
+    /// Result of the last `end(save: true)`: true = workout written to Apple Health.
+    private(set) var savedToHealth: Bool?
 
     @ObservationIgnored private let healthStore = HKHealthStore()
     @ObservationIgnored private var session: HKWorkoutSession?
@@ -54,6 +56,7 @@ final class WorkoutSessionService: NSObject, WorkoutSessionServing {
             self.builder = builder
             heartRate = nil
             activeEnergyKcal = 0
+            savedToHealth = nil
             session.startActivity(with: date)
             try await builder.beginCollection(at: date)
         } catch {
@@ -72,12 +75,14 @@ final class WorkoutSessionService: NSObject, WorkoutSessionServing {
         do {
             try await builder.endCollection(at: date)
             if save {
-                _ = try await builder.finishWorkout()
+                let saved = try await builder.finishWorkout()
+                savedToHealth = saved != nil
             } else {
                 builder.discardWorkout()
             }
         } catch {
             lastError = error.localizedDescription
+            if save { savedToHealth = false }
         }
         self.session = nil
         self.builder = nil

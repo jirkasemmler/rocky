@@ -17,6 +17,20 @@ struct RockyApp: App {
                                         audio: audio, sync: sync)
         workout.apply(settings: store.settings)
         let notifications = NotificationService()
+        let launcher = WatchWorkoutLauncher()
+        workout.onStarted = { [weak workout] _ in
+            // Make sure the watch app runs (HKWorkoutSession + haptics) and gets the start message,
+            // even when it was not open. Its WCSession needs a moment after launch, so retry twice;
+            // the watch ignores the repeat once it already runs the workout.
+            launcher.launch {
+                Task { @MainActor in
+                    for delay in [1.5, 4.0] {
+                        try? await Task.sleep(for: .seconds(delay))
+                        workout?.rebroadcastStart()
+                    }
+                }
+            }
+        }
 
         store.onChange = { [weak store] _ in
             guard let store else { return }
@@ -27,6 +41,7 @@ struct RockyApp: App {
             switch message {
             case let .sessionSaved(session, origin) where origin == .watch:
                 store?.save(session)
+                workout?.otherDeviceSaved(session)
             case .workoutStarted, .command:
                 workout?.handleRemote(message)
             default:

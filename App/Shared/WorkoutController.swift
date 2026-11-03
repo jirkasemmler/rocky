@@ -135,6 +135,21 @@ final class WorkoutController {
 
     func togglePause() { perform(isPaused ? .resume : .pause) }
 
+    /// Re-sends the start of the running workout (e.g. after the phone launched the watch app,
+    /// whose WCSession was not reachable at the original start). The other side ignores it if
+    /// it already runs a workout.
+    func rebroadcastStart() {
+        guard stage == .running, let plan, let startedAt = runner?.engine.startedAt else { return }
+        sync?.send(.workoutStarted(sessionID: sessionID, workoutID: plan.workout.id, intervals: plan.intervals,
+                                   rounds: plan.rounds, kind: kind, startedAt: startedAt, origin: origin))
+    }
+
+    /// The other device saved (or discarded) the same workout: leave the summary here too.
+    func otherDeviceSaved(_ session: Session) {
+        guard session.id == sessionID, case .summary = stage else { return }
+        reset()
+    }
+
     /// Call when the app returns to the foreground.
     func tick() {
         guard let runner, stage == .running else { return }
