@@ -76,6 +76,7 @@ struct HomeView: View {
                         .frame(maxWidth: .infinity, minHeight: 64)
                 }
                 .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("startToday")
             } else if state.completedToday {
                 Label("Dnes máš hotovo", systemImage: "checkmark.seal.fill")
                     .font(.title.bold())
@@ -95,6 +96,7 @@ struct HomeView: View {
                     WorkoutPreviewView(workoutID: state.nextWorkoutID, kind: .bonus, roundsOverride: nil,
                                        title: "Bonus: \(LocalizedText.workoutName(state.nextWorkoutID))")
                 }
+                .accessibilityIdentifier("startBonus")
             }
 
             if state.canPostpone {
@@ -105,6 +107,7 @@ struct HomeView: View {
                 } label: {
                     Label("Odložit (nemoc, zranění, cesta)", systemImage: "calendar.badge.clock")
                 }
+                .accessibilityIdentifier("postpone")
                 .font(.subheadline)
             }
         }
@@ -158,6 +161,7 @@ struct DebtBannerView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.orange.opacity(0.25), in: RoundedRectangle(cornerRadius: 16))
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("debtBanner")
     }
 }
 

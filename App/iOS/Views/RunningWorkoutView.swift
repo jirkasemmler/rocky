@@ -37,6 +37,7 @@ struct RunningWorkoutView: View {
             Spacer(minLength: 0)
 
             Text(Format.phaseTitle(s))
+                .accessibilityIdentifier("phaseTitle")
                 .font(.system(size: 44, weight: .bold, design: .rounded))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -108,15 +109,17 @@ struct RunningWorkoutView: View {
                 Image(systemName: "xmark.circle.fill").font(.title)
             }
             .accessibilityLabel("Ukončit trénink")
+            .accessibilityIdentifier("endWorkout")
         }
     }
 
     private func controls(_ s: EngineSnapshot) -> some View {
         HStack(spacing: 16) {
-            BigButton(systemImage: "backward.end.fill", label: "Zpět") { workout.perform(.back) }
+            BigButton(systemImage: "backward.end.fill", label: "Zpět", identifier: "backButton") { workout.perform(.back) }
             BigButton(systemImage: s.status == .paused ? "play.fill" : "pause.fill",
-                      label: s.status == .paused ? "Pokračovat" : "Pauza", prominent: true) { workout.togglePause() }
-            BigButton(systemImage: "forward.end.fill", label: "Přeskočit") { workout.perform(.skip) }
+                      label: s.status == .paused ? "Pokračovat" : "Pauza", prominent: true,
+                      identifier: "pauseButton") { workout.togglePause() }
+            BigButton(systemImage: "forward.end.fill", label: "Přeskočit", identifier: "skipButton") { workout.perform(.skip) }
         }
     }
 
@@ -140,6 +143,7 @@ struct BigButton: View {
     let systemImage: String
     let label: String
     var prominent = false
+    var identifier: String?
     let action: () -> Void
 
     var body: some View {
@@ -154,6 +158,7 @@ struct BigButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
+        .accessibilityIdentifier(identifier ?? label)
     }
 }
 

@@ -6,9 +6,22 @@ enum AppConstants {
     static let appGroupID = "group.cz.semmler.rocky"
     static let dataFileName = "training-data.json"
 
+    /// UI tests launch the app with `-uiTesting`: fresh data in a temp file, no permission prompts.
+    static var isUITesting: Bool { ProcessInfo.processInfo.arguments.contains("-uiTesting") }
+
+    /// `-uiTestingPlanStartDaysAgo N`: start the plan N days ago (to get debt / catch-up states).
+    static var uiTestingPlanStartDaysAgo: Int? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let i = args.firstIndex(of: "-uiTestingPlanStartDaysAgo"), i + 1 < args.count else { return nil }
+        return Int(args[i + 1])
+    }
+
     /// Local JSON file in the App Group container (falls back to Application Support).
     static func dataFileURL() -> URL {
         let fm = FileManager.default
+        if isUITesting {
+            return fm.temporaryDirectory.appendingPathComponent("uitest-" + dataFileName)
+        }
         if let group = fm.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) {
             return group.appendingPathComponent(dataFileName)
         }

@@ -65,6 +65,7 @@ struct SummaryView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(d?.label ?? "\(value)")
+                        .accessibilityIdentifier("difficulty\(value)")
                     }
                 }
                 if let difficulty {
@@ -104,6 +105,7 @@ struct SummaryView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .listRowBackground(Color.clear)
+                .accessibilityIdentifier("saveSession")
 
                 Button("Neukládat", role: .destructive) { confirmDiscard = true }
                     .frame(maxWidth: .infinity)

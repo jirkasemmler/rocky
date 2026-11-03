@@ -82,6 +82,7 @@ struct WorkoutPreviewView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .listRowBackground(Color.clear)
+                .accessibilityIdentifier("startWorkout")
             }
         }
         .navigationTitle(title)

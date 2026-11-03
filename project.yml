@@ -157,6 +157,21 @@ targets:
         TARGETED_DEVICE_FAMILY: "4"
         SKIP_INSTALL: YES
 
+  RockyUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: App/UITests
+    dependencies:
+      - target: Rocky
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cz.semmler.rocky.uitests
+        TEST_TARGET_NAME: Rocky
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1"
+
 schemes:
   Rocky:
     build:
@@ -167,6 +182,8 @@ schemes:
       config: Debug
     test:
       config: Debug
+      targets:
+        - RockyUITests
   RockyWatch:
     build:
       targets:

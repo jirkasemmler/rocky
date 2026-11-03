@@ -10,7 +10,16 @@ struct RockyApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
-        let store = TrainingStore(persistence: JSONFilePersistenceStore(fileURL: AppConstants.dataFileURL()))
+        let persistence = JSONFilePersistenceStore(fileURL: AppConstants.dataFileURL())
+        if AppConstants.isUITesting {
+            try? FileManager.default.removeItem(at: AppConstants.dataFileURL())
+            if let days = AppConstants.uiTestingPlanStartDaysAgo {
+                let calendar = Calendar.training
+                let start = calendar.date(byAdding: .day, value: -days, to: calendar.startOfDay(for: Date())) ?? Date()
+                try? persistence.save(TrainingData(planStart: start))
+            }
+        }
+        let store = TrainingStore(persistence: persistence)
         let sync = WatchSyncService()
         let audio = AudioSessionController()
         let workout = WorkoutController(origin: .phone, speech: SpeechService(audio: audio), haptics: PhoneHapticsService(),
@@ -64,6 +73,7 @@ struct RockyApp: App {
                 .tint(.green)
                 .preferredColorScheme(.dark)
                 .task {
+                    guard !AppConstants.isUITesting else { return }
                     _ = await notifications.requestAuthorization()
                     await notifications.reschedule(store.upcomingReminders())
                     sync.send(.settingsChanged(store.settings))
