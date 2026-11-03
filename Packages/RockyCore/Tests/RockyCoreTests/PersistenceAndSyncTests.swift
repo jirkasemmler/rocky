@@ -64,6 +64,7 @@ final class PersistenceAndSyncTests: XCTestCase {
                             startedAt: T.date(2026, 11, 3, 19), origin: .watch),
             .command(sessionID: id, command: .skip, at: T.date(2026, 11, 3, 19, 5), origin: .phone),
             .sessionSaved(sampleData().sessions[0], origin: .watch),
+            .sessionDiscarded(sessionID: id, origin: .phone),
             .settingsChanged(.default),
         ]
         for m in messages {

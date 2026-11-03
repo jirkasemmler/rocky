@@ -104,7 +104,12 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
   immediate delivery (2026-11-03: otherwise saving a mirrored workout on the phone did not close
   the summary on the watch). Both devices keep their own local JSON; sessions are merged by id
   (same id on both devices for a mirrored workout, so no duplicates). Saving on one device
-  closes the summary of the same workout on the other.
+  closes the summary of the same workout on the other; "Neukládat" sends `sessionDiscarded` and
+  closes it without saving. Settings go through `updateApplicationContext` (latest wins, so a
+  quick A→B change cannot end with A); durable messages sent before the WCSession is activated
+  are queued until activation. A start message is applied only when idle and never for the
+  same session twice (the phone re-sends it until the watch is reachable, max ~30 s).
+  *(2026-11-03, after a code review of the first Mac build)*
   Known gap: postponements (illness/injury/travel) are not synced to the watch, so after a
   postponement the watch Start screen / complication may still show the catch-up until the
   next workout is saved.

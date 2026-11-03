@@ -39,7 +39,7 @@ struct WatchSummaryView: View {
                 .frame(height: 50)
                 Button("Uložit") { save() }
                     .tint(.green)
-                Button("Neukládat", role: .destructive) { workout.reset() }
+                Button("Neukládat", role: .destructive) { workout.discard() }
             }
         }
         .navigationTitle("Souhrn")

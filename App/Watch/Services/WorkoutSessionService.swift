@@ -70,6 +70,10 @@ final class WorkoutSessionService: NSObject, WorkoutSessionServing {
 
     func end(at date: Date, save: Bool) async {
         guard let session, let builder else { return }
+        // Clear first: a new workout starting while this one is still being saved must get its
+        // own session instead of hitting the `session == nil` guard in `start`.
+        self.session = nil
+        self.builder = nil
         session.stopActivity(with: date)
         session.end()
         do {
@@ -84,8 +88,6 @@ final class WorkoutSessionService: NSObject, WorkoutSessionServing {
             lastError = error.localizedDescription
             if save { savedToHealth = false }
         }
-        self.session = nil
-        self.builder = nil
     }
 }
 

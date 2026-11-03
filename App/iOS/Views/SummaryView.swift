@@ -118,7 +118,7 @@ struct SummaryView: View {
         .navigationTitle("Souhrn")
         .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog("Trénink nebude uložen.", isPresented: $confirmDiscard, titleVisibility: .visible) {
-            Button("Neukládat", role: .destructive) { workout.reset() }
+            Button("Neukládat", role: .destructive) { workout.discard() }
             Button("Zpět", role: .cancel) {}
         }
     }

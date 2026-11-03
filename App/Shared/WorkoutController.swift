@@ -38,7 +38,8 @@ final class WorkoutController {
     @ObservationIgnored let sync: WatchSyncing?
 
     /// Platform hooks (watch: HKWorkoutSession start/pause/end).
-    @ObservationIgnored var onStarted: ((Date) -> Void)?
+    /// `local` = started on this device (false = mirrored from the other one).
+    @ObservationIgnored var onStarted: ((_ at: Date, _ local: Bool) -> Void)?
     @ObservationIgnored var onPauseChanged: ((_ paused: Bool, _ at: Date) -> Void)?
     @ObservationIgnored var onEnded: ((_ at: Date, _ completed: Bool) -> Void)?
 
@@ -108,7 +109,7 @@ final class WorkoutController {
         audio?.beginWorkout()
         let output = startedAt.map { runner.start(at: $0) } ?? runner.start()
         let actualStart = runner.engine.startedAt ?? Date()
-        onStarted?(actualStart)
+        onStarted?(actualStart, broadcast)
         if broadcast {
             sync?.send(.workoutStarted(sessionID: sessionID, workoutID: workoutID, intervals: plan.intervals,
                                        rounds: plan.rounds, kind: kind, startedAt: actualStart, origin: origin))
@@ -138,13 +139,28 @@ final class WorkoutController {
     /// Re-sends the start of the running workout (e.g. after the phone launched the watch app,
     /// whose WCSession was not reachable at the original start). The other side ignores it if
     /// it already runs a workout.
-    func rebroadcastStart() {
-        guard stage == .running, let plan, let startedAt = runner?.engine.startedAt else { return }
+    /// Returns false when there is nothing to send (no running workout).
+    @discardableResult
+    func rebroadcastStart() -> Bool {
+        guard stage == .running, let plan, let startedAt = runner?.engine.startedAt else { return false }
         sync?.send(.workoutStarted(sessionID: sessionID, workoutID: plan.workout.id, intervals: plan.intervals,
                                    rounds: plan.rounds, kind: kind, startedAt: startedAt, origin: origin))
+        return true
     }
 
-    /// The other device saved (or discarded) the same workout: leave the summary here too.
+    /// The other device discarded the same workout: leave the summary here too (without saving).
+    func otherDeviceDiscarded(sessionID id: UUID) {
+        guard id == sessionID, case .summary = stage else { return }
+        reset()
+    }
+
+    /// Discards the finished workout here and tells the other device.
+    func discard() {
+        sync?.send(.sessionDiscarded(sessionID: sessionID, origin: origin))
+        reset()
+    }
+
+    /// The other device saved the same workout: leave the summary here too.
     func otherDeviceSaved(_ session: Session) {
         guard session.id == sessionID, case .summary = stage else { return }
         reset()
@@ -160,7 +176,10 @@ final class WorkoutController {
     func handleRemote(_ message: SyncMessage) {
         switch message {
         case let .workoutStarted(id, workoutID, intervals, rounds, kind, startedAt, from) where from != origin:
-            guard stage != .running else { return }
+            // Only when idle (never over a running workout or an unsaved summary), and never the
+            // same session again: the phone re-sends the start, and a late duplicate must not
+            // restart a workout that already ended here.
+            guard stage == .idle, id != sessionID else { return }
             // `rounds` is the plan's total; only a value different from the intervals is an override
             // (shortened version). Passing it unconditionally made every mirrored workout "shortened".
             let override = rounds == intervals.rounds ? nil : rounds

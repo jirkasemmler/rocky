@@ -27,15 +27,20 @@ struct RockyApp: App {
         workout.apply(settings: store.settings)
         let notifications = NotificationService()
         let launcher = WatchWorkoutLauncher()
-        workout.onStarted = { [weak workout] _ in
+        workout.onStarted = { [weak workout, weak sync] _, local in
+            // Only for workouts started here (a start mirrored from the watch is already there).
+            guard local else { return }
             // Make sure the watch app runs (HKWorkoutSession + haptics) and gets the start message,
-            // even when it was not open. Its WCSession needs a moment after launch, so retry twice;
-            // the watch ignores the repeat once it already runs the workout.
+            // even when it was not open. Its WCSession needs a moment after launch: re-send every
+            // 1.5 s until the watch is reachable (then once more), for at most ~30 s. The watch
+            // ignores repeats of a session it already runs or finished.
             launcher.launch {
                 Task { @MainActor in
-                    for delay in [1.5, 4.0] {
-                        try? await Task.sleep(for: .seconds(delay))
-                        workout?.rebroadcastStart()
+                    for _ in 0..<20 {
+                        try? await Task.sleep(for: .seconds(1.5))
+                        let reachable = sync?.isReachable ?? false
+                        guard workout?.rebroadcastStart() == true else { return }
+                        if reachable { return }
                     }
                 }
             }
@@ -51,6 +56,8 @@ struct RockyApp: App {
             case let .sessionSaved(session, origin) where origin == .watch:
                 store?.save(session)
                 workout?.otherDeviceSaved(session)
+            case let .sessionDiscarded(id, origin) where origin == .watch:
+                workout?.otherDeviceDiscarded(sessionID: id)
             case .workoutStarted, .command:
                 workout?.handleRemote(message)
             default:

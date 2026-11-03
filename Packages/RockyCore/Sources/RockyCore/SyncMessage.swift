@@ -16,6 +16,9 @@ public enum SyncMessage: Codable, Sendable, Equatable {
     case command(sessionID: UUID, command: Command, at: Date, origin: Origin)
     /// A finished (or aborted) session record to merge into local history.
     case sessionSaved(Session, origin: Origin)
+    /// The workout was finished but discarded ("Neukládat") on one device; the other closes its
+    /// summary without saving.
+    case sessionDiscarded(sessionID: UUID, origin: Origin)
     /// Settings changed on the phone (watch mirrors relevant parts).
     case settingsChanged(Settings)
 

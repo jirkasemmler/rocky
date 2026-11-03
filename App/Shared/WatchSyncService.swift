@@ -28,14 +28,30 @@ final class WatchSyncService: NSObject, WatchSyncing {
         session.activate()
     }
 
+    /// Messages sent before the WCSession finished activating (e.g. settings at app launch).
+    private var pending: [SyncMessage] = []
+
     func send(_ message: SyncMessage) {
-        guard let session, session.activationState == .activated, let info = try? message.userInfo() else { return }
+        guard let session else { return }
+        guard session.activationState == .activated else {
+            // Live commands are only useful now; durable data waits for the activation.
+            switch message {
+            case .sessionSaved, .sessionDiscarded, .settingsChanged: pending.append(message)
+            case .workoutStarted, .command: break
+            }
+            return
+        }
+        guard let info = try? message.userInfo() else { return }
         switch message {
-        case .sessionSaved, .settingsChanged:
+        case .settingsChanged:
+            // Latest wins: the application context only keeps the newest value, so a quick A→B
+            // change can never end with the older A on the other device.
+            try? session.updateApplicationContext(info)
+        case .sessionSaved, .sessionDiscarded:
             // Durable, queued delivery (works when the other side is away)...
             session.transferUserInfo(info)
             // ...plus immediate delivery when reachable, so the other device closes its summary
-            // right away. Duplicates are harmless: sessions are merged by id, settings are equal.
+            // right away. Duplicates are harmless: sessions are merged by id.
             if session.isReachable {
                 session.sendMessage(info, replyHandler: nil, errorHandler: nil)
             }
@@ -45,6 +61,12 @@ final class WatchSyncService: NSObject, WatchSyncing {
                 session.sendMessage(info, replyHandler: nil, errorHandler: nil)
             }
         }
+    }
+
+    private func flushPending() {
+        let queued = pending
+        pending = []
+        queued.forEach(send)
     }
 
     nonisolated private func deliver(_ info: [String: Any]) {
@@ -57,7 +79,14 @@ final class WatchSyncService: NSObject, WatchSyncing {
 
 extension WatchSyncService: WCSessionDelegate {
     nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState,
-                             error: Error?) {}
+                             error: Error?) {
+        guard activationState == .activated else { return }
+        Task { @MainActor in self.flushPending() }
+    }
+
+    nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
+        deliver(applicationContext)
+    }
 
     #if os(iOS)
     nonisolated func sessionDidBecomeInactive(_ session: WCSession) {}

@@ -8,7 +8,7 @@ final class WatchAppDelegate: NSObject, WKApplicationDelegate {
     @MainActor static var onWorkoutConfiguration: ((HKWorkoutConfiguration) -> Void)?
 
     func handle(_ workoutConfiguration: HKWorkoutConfiguration) {
-        MainActor.assumeIsolated {
+        Task { @MainActor in
             Self.onWorkoutConfiguration?(workoutConfiguration)
         }
     }

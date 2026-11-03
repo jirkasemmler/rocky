@@ -20,7 +20,7 @@ struct RockyWatchApp: App {
                                         audio: nil, sync: sync)
         workout.apply(settings: store.settings, speechEnabled: store.settings.watchSoundEnabled && store.settings.voiceEnabled)
 
-        workout.onStarted = { date in Task { await health.start(at: date) } }
+        workout.onStarted = { date, _ in Task { await health.start(at: date) } }
         workout.onPauseChanged = { paused, date in
             if paused { health.pause(at: date) } else { health.resume(at: date) }
         }
@@ -39,7 +39,9 @@ struct RockyWatchApp: App {
             Task { @MainActor in
                 await health.start(at: Date())
                 try? await Task.sleep(for: .seconds(30))
-                if workout?.isRunning != true, workout?.stage == .idle {
+                // No workout runs → the session is the empty one from the launch (a real workout
+                // reuses it, see `start`'s `session == nil` guard).
+                if workout?.isRunning != true {
                     await health.end(at: Date(), save: false)
                 }
             }
@@ -51,6 +53,10 @@ struct RockyWatchApp: App {
                 store?.save(session)
                 workout?.otherDeviceSaved(session)
             case .sessionSaved:
+                break
+            case let .sessionDiscarded(id, origin) where origin == .phone:
+                workout?.otherDeviceDiscarded(sessionID: id)
+            case .sessionDiscarded:
                 break
             case let .settingsChanged(settings):
                 store?.updateSettings(settings)
