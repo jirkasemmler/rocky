@@ -47,5 +47,6 @@ struct WatchStartView: View {
                 .frame(maxWidth: .infinity, minHeight: 50)
         }
         .tint(.green)
+        .accessibilityIdentifier("watchStart")
     }
 }

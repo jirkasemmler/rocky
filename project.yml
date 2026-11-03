@@ -170,6 +170,21 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         TARGETED_DEVICE_FAMILY: "1"
 
+  RockyWatchUITests:
+    type: bundle.ui-testing
+    platform: watchOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: App/WatchUITests
+    dependencies:
+      - target: RockyWatch
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cz.semmler.rocky.watchkitapp.uitests
+        TEST_TARGET_NAME: RockyWatch
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "4"
+
 schemes:
   Rocky:
     build:
@@ -188,3 +203,7 @@ schemes:
         RockyWatch: all
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - RockyWatchUITests

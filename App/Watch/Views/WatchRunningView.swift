@@ -56,12 +56,14 @@ struct WatchRunningView: View {
                     Image(systemName: workout.isPaused ? "play.fill" : "pause.fill")
                 }
                 .tint(.yellow)
+                .accessibilityIdentifier("watchPause")
                 Button { workout.perform(.skip) } label: { Image(systemName: "forward.end.fill") }
             }
             .font(.title2)
             Button(role: .destructive) { workout.perform(.abort) } label: {
                 Label("Ukončit", systemImage: "xmark")
             }
+            .accessibilityIdentifier("watchEnd")
         }
     }
 
