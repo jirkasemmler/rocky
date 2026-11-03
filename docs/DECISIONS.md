@@ -93,11 +93,21 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
 - **D-17 HealthKit writes only from the watch** (HKWorkoutSession + HKLiveWorkoutBuilder, type
   functional strength training). A workout started on the phone is mirrored to the watch if it is
   reachable, so the watch records it. Phone-only workouts are not written to Health in v1.
+  *(2026-11-03: the phone now also calls `HKHealthStore.startWatchApp` on start, which launches
+  the watch app with the workout configuration even when it is closed; the watch starts its
+  HKWorkoutSession immediately and the phone re-sends the start message after 1.5 s and 4 s.
+  An empty session is discarded after 30 s.)*
   Aborted (partial) workouts are still saved to Health.
 - **D-18 Sync.** Live commands (start/pause/skip/back/abort) use `WCSession.sendMessage` when the
   other device is reachable and are dropped otherwise; finished sessions and settings use
-  `transferUserInfo` (queued, delivered later). Both devices keep their own local JSON; sessions
-  are merged by id (same id on both devices for a mirrored workout, so no duplicates).
+  `transferUserInfo` (queued, delivered later) **and**, when reachable, also `sendMessage` for
+  immediate delivery (2026-11-03: otherwise saving a mirrored workout on the phone did not close
+  the summary on the watch). Both devices keep their own local JSON; sessions are merged by id
+  (same id on both devices for a mirrored workout, so no duplicates). Saving on one device
+  closes the summary of the same workout on the other.
+  Known gap: postponements (illness/injury/travel) are not synced to the watch, so after a
+  postponement the watch Start screen / complication may still show the catch-up until the
+  next workout is saved.
 - **D-19 Notifications.** Local only, scheduled by the iPhone for the next 7 days (max 60 pending)
   and rescheduled after every change and on app foreground. The watch gets them through the
   standard iPhone→Watch notification forwarding (haptic on the wrist). Interruption level:
@@ -139,6 +149,12 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
 
 ## C. Not implemented yet (known gaps vs. PRD)
 
+- **Audio session calls on the main thread**: Xcode warns that `AVAudioSession.setActive` on
+  the main thread can cause UI hitches (it runs around every spoken cue). Candidate fix: move
+  the session calls to a serial queue or use the async activation API. Together with the D-15
+  un-duck question this needs a device test first.
+- Simulator caveat: the watch simulator cannot write a real Health workout without granting
+  Health access by hand, and pairing latency on simulators is not the Bluetooth latency.
 - "Graph of the week" exists on Home (minutes per day); no per-session timing graph yet.
 - iCloud/backup/export — out of scope (PRD: data only on device).
 - Localization catalog: UI strings are Czech literals in code (single-language app per PRD).

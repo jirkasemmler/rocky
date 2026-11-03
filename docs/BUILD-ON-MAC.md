@@ -1,14 +1,15 @@
 # Build and run on a Mac
 
-> **UNVERIFIED, needs build on Mac.** The iOS and watchOS apps were written on a Linux box where
-> Xcode and the iOS/watchOS SDKs do not exist. Nothing in `App/` has been compiled against the
-> Apple SDKs or run on a simulator or device. Expect a first round of compile fixes in Xcode.
-> What *was* verified on Linux is listed at the end.
+> **Built on a Mac on 2026-11-03** with Xcode 27.2 (iOS / watchOS 27.2 SDKs, deployment
+> target 26.0): both schemes build without errors or warnings, the UI tests pass on simulators
+> and phone ⇄ watch sync was checked on paired simulators. What still needs a real iPhone and
+> Apple Watch is the unticked part of §5.
 
 ## 1. Prerequisites
 
-- macOS that supports **Xcode 26** (iOS 26 / watchOS 26 SDKs).
-- Install Xcode 26 from the App Store (or developer.apple.com), open it once, accept the license and
+- macOS that supports **Xcode 26 or newer** (iOS 26 / watchOS 26 SDKs or newer; verified with
+  Xcode 27.2). Simulators: `xcodebuild -downloadPlatform iOS` and `-downloadPlatform watchOS`.
+- Install Xcode from the App Store (or developer.apple.com), open it once, accept the license and
   install the iOS + watchOS platforms when prompted (Xcode → Settings → Components).
 - Homebrew, then XcodeGen:
 
@@ -58,9 +59,14 @@ For **both** targets (`Rocky` = iPhone, `RockyWatch` = watch) in *Signing & Capa
      prompts may appear on the phone).
    - **Background Modes → Audio, AirPlay, and Picture in Picture** — iPhone target (voice cues
      with locked screen). Watch: *Workout processing* (`WKBackgroundModes`).
-   - **App Groups** — iPhone target, `group.cz.semmler.rocky` (used for the local data file;
-     needed later for a widget/complication). If you do not want App Groups, remove it; the app
-     falls back to Application Support.
+   - **App Groups** — `group.cz.semmler.rocky` on the iPhone app, the watch app and the
+     complication extension `RockyWatchWidgets` (the complication reads the watch's data file).
+   - **Time Sensitive Notifications** — iPhone target (catch-up and escalated reminders). If
+     signing with your team rejects it, remove
+     `com.apple.developer.usernotifications.time-sensitive` from `project.yml`; reminders then
+     arrive as normal (`.active`) notifications.
+   - The complication extension (`cz.semmler.rocky.watchkitapp.widgets`) needs signing with
+     the same team as the watch app.
 
 ## 4. Run on device
 
@@ -73,8 +79,15 @@ For **both** targets (`Rocky` = iPhone, `RockyWatch` = watch) in *Signing & Capa
 
 ## 5. What to verify manually (not testable on Linux)
 
-- [ ] Both targets compile (expect fixes: SwiftUI API details, concurrency warnings, XcodeGen
-      watch-embedding phase — check *Build Phases → Embed Watch Content* contains the watch app).
+- [x] Both targets compile (watch app embedded at `Rocky.app/Watch/RockyWatch.app`, complication
+      at `RockyWatch.app/PlugIns/RockyWatchWidgets.appex`). *(Mac, 2026-11-03)*
+- [x] Simulator: Home, preview, running (warm-up/exercise/rest/pause), checklist, end, summary,
+      history, detail, settings, catch-up (short and long debt, postpone menu) — UI tests and
+      screenshot tour. *(2026-11-03)*
+- [x] Simulator (paired iPhone + Watch): start on phone → watch runs within ~2 s and vice versa;
+      skip, pause, end mirror; saving on one device closes the summary on the other. *(2026-11-03)*
+- [ ] Device: real sync latency over Bluetooth; starting on the phone with the watch app closed
+      (the phone launches it via HealthKit `startWatchApp`).
 - [ ] Start a workout on the phone, lock the phone: cues keep coming on time (±200 ms target).
 - [ ] Music from another app keeps playing and gets ducked only while a cue is spoken (D-15).
 - [ ] Phone call / Siri interrupts → workout pauses.
@@ -90,6 +103,11 @@ For **both** targets (`Rocky` = iPhone, `RockyWatch` = watch) in *Signing & Capa
 - [ ] Skip a training day, do the catch-up the next (rest) day → it shows as caught up.
 - [ ] Stretch at the end is always 2:00 (Settings show it read-only).
 - [ ] Haptic patterns on the watch are distinguishable (start / last 3 s / rest / round end).
+- [ ] Watch summary shows "Uloženo do Zdraví"; the workout is in the Health app.
+- [ ] Complication: add "Rocky" to a watch face; it shows today's workout / catch-up / done.
+- [ ] Catch-up reminders get through a Focus mode (time-sensitive).
+- [ ] Settings → "Přehrát ukázku": Zuzana speaks; rate slider and the address field change the
+      voice cues (empty address = "šampione").
 
 ## 6. What was verified on Linux (for reference)
 

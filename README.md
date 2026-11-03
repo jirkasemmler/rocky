@@ -19,15 +19,17 @@ UI and voice are Czech (cs-CZ); code, file names and commits are English.
 
 ## Status
 
+First Mac build: 2026-11-03, Xcode 27.2 (iOS / watchOS 27.2 SDKs, deployment target 26.0),
+XcodeGen 2.46.0, Swift 6 language mode everywhere.
+
 | Part | State |
 |---|---|
-| `Packages/RockyCore` (pure Swift, Foundation only) | **Done and tested**: `swift test` → 151 tests, 0 failures (Swift 6.4.2, Linux x86_64, Swift 6 language mode). |
-| `App/Shared` (store, workout controller, services) | Written. Foundation/Observation parts **type-check on Linux**; files using Apple frameworks only syntax-checked. |
-| `App/iOS`, `App/Watch` (SwiftUI) | Written, **UNVERIFIED** — never compiled against the iOS/watchOS SDK (no Xcode on Linux). |
-| `project.yml` (XcodeGen) | Generates an Xcode project without errors (XcodeGen 2.46.0 on Linux). Not built. |
-| Watch complication | Not implemented yet (needs a WidgetKit extension). |
-
-Next step: build on a Mac with Xcode 26 → [docs/BUILD-ON-MAC.md](docs/BUILD-ON-MAC.md).
+| `Packages/RockyCore` (pure Swift, Foundation only) | **Done and tested**: `swift test` → 151 tests, 0 failures (Linux and macOS). |
+| `App/Shared`, `App/iOS`, `App/Watch` (SwiftUI) | **Build clean** (0 errors, 0 warnings) for simulator and device. |
+| Watch complication (`App/WatchWidgets`, WidgetKit) | Builds and is embedded in the watch app. Not yet placed on a watch face (manual check). |
+| UI tests | `RockyUITests` (iPhone, 3 tests) and `RockyWatchUITests` (1 test) pass on iPhone 17 Pro / Apple Watch Series 11 (46 mm) simulators, iOS / watchOS 27.2. |
+| Phone ⇄ watch sync | Verified on paired simulators: start, skip, pause, end mirror in both directions within ~2–3 s; saving on one device closes the summary on the other. |
+| Device-only behaviour | Voice with a locked phone, ducking, wrist haptics, Apple Health record, time-sensitive notifications: **not verified yet**, see [docs/BUILD-ON-MAC.md](docs/BUILD-ON-MAC.md) §5. |
 
 ## Structure
 
@@ -53,9 +55,13 @@ rocky/
 │   ├── Shared/                     TrainingStore, WorkoutController, SpeechService (cs-CZ),
 │   │                               WatchSyncService (WatchConnectivity), protocols
 │   ├── iOS/                        RockyApp, Views (Home, Preview, Running, Summary, History,
-│   │                               Settings, Checklist), Services (audio session, notifications, haptics)
-│   └── Watch/                      RockyWatchApp, Views (Start, Running, Summary),
-│                                   Services (HKWorkoutSession, haptics)
+│   │                               Settings, Checklist), Services (audio session, notifications,
+│   │                               haptics, watch-app launcher)
+│   ├── Watch/                      RockyWatchApp, app delegate, Views (Start, Running, Summary),
+│   │                               Services (HKWorkoutSession, haptics)
+│   ├── WatchWidgets/               watch face complication (WidgetKit extension)
+│   ├── UITests/, WatchUITests/     XCUITest: main flows (+ opt-in screenshot tour / sync hold)
+│   └── Assets.xcassets             placeholder app icon (tools/make-icon.swift)
 └── docs/
     ├── PRD.md                      requirements (v1.1)
     ├── PRD-original-v1.1.md        untouched read-only copy of the original PRD
@@ -73,6 +79,19 @@ cd Packages/RockyCore
 swift test
 ```
 
+## Run the app tests
+
+```sh
+xcodegen generate
+xcodebuild -project Rocky.xcodeproj -scheme Rocky      -destination 'platform=iOS Simulator,name=iPhone 17 Pro' test
+xcodebuild -project Rocky.xcodeproj -scheme RockyWatch -destination 'platform=watchOS Simulator,name=Apple Watch Series 11 (46mm)' test
+```
+
+The app launched with `-uiTesting` uses a fresh temporary data file and skips the permission
+prompts; `-uiTestingPlanStartDaysAgo N` starts the plan N days ago (catch-up states).
+`TEST_RUNNER_ROCKY_SCREENSHOT_DIR=<dir>` enables `ScreenshotTour`, which saves a screenshot of
+every iPhone screen.
+
 ## Key design points
 
 - **Timer accuracy**: the engine derives everything from timestamps (phase start + paused time),
@@ -80,7 +99,9 @@ swift test
 - **Voice**: `AVSpeechSynthesizer` with a Czech system voice (default Zuzana), background audio
   session mixing with the user's music and ducking it while speaking.
 - **Watch**: `HKWorkoutSession` (functional strength training) keeps the timer running with the
-  display off and writes the workout to Health; distinct haptic patterns per event.
+  display off and writes the workout to Health; distinct haptic patterns per event. A workout
+  started on the phone launches the watch app (`startWatchApp`) so it is recorded there too.
+  Complication on the watch face: today's workout, catch-up, done / rest day.
 - **Catch-up debt**: deterministic day-by-day replay of the plan; missed slot → catch-up the next
   day, even a rest day (on a training day it replaces that day's workout); every day with debt gets
   escalating reminders (set hour, +1 h, +2 h, max 22:30), shortened 2-round version for
