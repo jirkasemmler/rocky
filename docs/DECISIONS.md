@@ -97,8 +97,12 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
   are merged by id (same id on both devices for a mirrored workout, so no duplicates).
 - **D-19 Notifications.** Local only, scheduled by the iPhone for the next 7 days (max 60 pending)
   and rescheduled after every change and on app foreground. The watch gets them through the
-  standard iPhone→Watch notification forwarding (haptic on the wrist). Interruption level
-  `.active`; `.timeSensitive` would need an extra entitlement (left for later).
+  standard iPhone→Watch notification forwarding (haptic on the wrist). Interruption level:
+  catch-up (debt) reminders and escalations (+1 h / +2 h) are `.timeSensitive` (entitlement
+  `com.apple.developer.usernotifications.time-sensitive`), so they get through Focus; the single
+  reminder at the set hour on a normal day stays `.active`. *(changed 2026-11-03 with the first
+  Mac build: the prompt for the build asked for time-sensitive notifications; PRD 8a wants the
+  catch-up to be "enforcing")*
 - **D-20 Checklist auto-tick wins.** Exercise/round/warm-up/stretch items tick automatically when
   an interval runs to completion; a manual untick of an auto-ticked item is re-applied on the
   next tick. Manual ticks of skipped items are kept.

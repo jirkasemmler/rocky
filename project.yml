@@ -72,6 +72,8 @@ targets:
           - group.cz.semmler.rocky
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access: []
+        # Catch-up and escalated reminders break through Focus (D-19).
+        com.apple.developer.usernotifications.time-sensitive: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: cz.semmler.rocky

@@ -12,7 +12,7 @@ struct WatchStartView: View {
         ScrollView {
             VStack(spacing: 10) {
                 if state.debt.hasDebt {
-                    Label(state.debt.isLong ? "Dluh – zkrácená verze" : "Dlužíš \(state.debt.count)",
+                    Label(state.debt.isLong ? "Dluh – zkrácená verze" : "Dlužíš \(Format.workouts(state.debt.count))",
                           systemImage: "exclamationmark.triangle.fill")
                         .font(.footnote)
                         .foregroundStyle(.orange)

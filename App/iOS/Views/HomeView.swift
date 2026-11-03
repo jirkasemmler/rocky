@@ -146,7 +146,7 @@ struct DebtBannerView: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.title2)
             VStack(alignment: .leading, spacing: 4) {
-                Text(debt.count == 1 ? "Dlužíš 1 trénink" : "Dlužíš \(debt.count) tréninky")
+                Text("Dlužíš \(Format.workouts(debt.count))")
                     .font(.headline)
                 Text(debt.isLong
                      ? "Dluh je starší než 2 dny – stačí zkrácená verze (2 kola) a jsi zpátky v plánu."

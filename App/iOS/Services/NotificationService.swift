@@ -14,6 +14,10 @@ struct NotificationService: NotificationScheduling {
     /// iOS keeps at most 64 pending local notifications per app.
     static let maxPending = 60
 
+    static func isTimeSensitive(_ reminder: Reminder) -> Bool {
+        reminder.isCatchUp || reminder.level > 0
+    }
+
     func requestAuthorization() async -> Bool {
         (try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])) ?? false
     }
@@ -31,9 +35,9 @@ struct NotificationService: NotificationScheduling {
             content.body = reminder.body
             content.sound = .default
             content.threadIdentifier = reminder.isCatchUp ? "catch-up" : "reminder"
-            // Escalation is expressed by repetition and wording; `.timeSensitive` would need an
-            // extra entitlement and is left for later (docs/DECISIONS.md).
-            content.interruptionLevel = .active
+            // Catch-up (debt) reminders and escalations (+1 h / +2 h) are time-sensitive so they get
+            // through Focus modes; the plain reminder at the set hour stays `.active` (D-19).
+            content.interruptionLevel = Self.isTimeSensitive(reminder) ? .timeSensitive : .active
             let components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: reminder.fireDate)
             let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
             let request = UNNotificationRequest(identifier: Self.identifierPrefix + reminder.id, content: content, trigger: trigger)

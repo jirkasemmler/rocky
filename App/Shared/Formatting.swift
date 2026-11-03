@@ -22,6 +22,15 @@ enum Format {
         }
     }
 
+    /// Czech plural: 1 trénink, 2–4 tréninky, 5+ tréninků.
+    static func workouts(_ n: Int) -> String {
+        switch n {
+        case 1: return "1 trénink"
+        case 2...4: return "\(n) tréninky"
+        default: return "\(n) tréninků"
+        }
+    }
+
     static let dayFormatter: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "cs_CZ")
