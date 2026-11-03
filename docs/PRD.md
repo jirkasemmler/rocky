@@ -125,3 +125,19 @@ Cílový uživatel (v1): jeden člověk (Jiri), čeština, bez nutnosti účtu. 
 **C:** bulharský dřep (8 až 10 na nohu), kliky s užším postavením rukou (8 až 12), rumunský mrtvý tah s činkami (12 až 15), boční plank (20 až 30 s na stranu).
 
 Progrese: po 2 týdnech přidat opakování nebo zpomalit spouštění (3 s dolů); při 15 snadných opakováních přejít z 2 kg na 5 kg.
+
+---
+
+## Změny po v1.1
+
+*Doplněno 2026-11-03 po potvrzení Jirkou; původní znění v1.1 je beze změny v [PRD-original-v1.1.md](PRD-original-v1.1.md).*
+
+- **Protažení** po tréninku má pevně **2 minuty** (nelze měnit v nastavení).
+- **Dohánění v libovolný den:** vynechaný trénink se dohání hned další den, i když to není
+  tréninkový den (vynechaná středa → dohnat ve čtvrtek), a lze ho dohnat a zapsat v kterýkoli den
+  včetně víkendu. Nadále platí max. 1 trénink denně.
+- **Stupňování připomínek** (nastavená hodina, +1 h, +2 h, nejpozději 22:30) běží **každý den,
+  kdy je dluh**, bez ohledu na plán. Přepínač „Stupňovat i v běžné tréninkové dny“ se týká jen
+  plánovaných dnů bez dluhu (výchozí vypnuto = jedna připomínka).
+- Odpovědi na otevřené otázky (oddíl 11): eskalace nejpozději 22:30; při dluhu delším než 2 dny jen
+  zkrácená verze (2 kola); výchozí hlas Zuzana s nastavitelným tempem; metronom později.

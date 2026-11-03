@@ -21,7 +21,7 @@ UI and voice are Czech (cs-CZ); code, file names and commits are English.
 
 | Part | State |
 |---|---|
-| `Packages/RockyCore` (pure Swift, Foundation only) | **Done and tested**: `swift test` → 132 tests, 0 failures (Swift 6.4.2, Linux x86_64, Swift 6 language mode). |
+| `Packages/RockyCore` (pure Swift, Foundation only) | **Done and tested**: `swift test` → 151 tests, 0 failures (Swift 6.4.2, Linux x86_64, Swift 6 language mode). |
 | `App/Shared` (store, workout controller, services) | Written. Foundation/Observation parts **type-check on Linux**; files using Apple frameworks only syntax-checked. |
 | `App/iOS`, `App/Watch` (SwiftUI) | Written, **UNVERIFIED** — never compiled against the iOS/watchOS SDK (no Xcode on Linux). |
 | `project.yml` (XcodeGen) | Generates an Xcode project without errors (XcodeGen 2.46.0 on Linux). Not built. |
@@ -38,7 +38,7 @@ rocky/
 │   ├── Sources/RockyCore/
 │   │   ├── Models.swift            Exercise, Workout, Session, Settings, Checklist, ...
 │   │   ├── WorkoutLibrary.swift    workouts A/B/C (Czech names + technique tips)
-│   │   ├── WorkoutPlan.swift       warm-up → 3 rounds (work/rest/round rest) → stretch
+│   │   ├── WorkoutPlan.swift       warm-up → 3 rounds (work/rest/round rest) → 2 min stretch
 │   │   ├── WorkoutEngine.swift     timestamp-based state machine (pause/skip/back, no drift)
 │   │   ├── VoiceCues.swift         Czech cue texts + timing, haptic patterns
 │   │   ├── RockyLines.swift        "Rockyho hlášky" phrasebook + seeded picker
@@ -48,7 +48,7 @@ rocky/
 │   │   ├── DebtPlanner.swift       slots, missed → debt → catch-up, reminders, streak
 │   │   ├── Persistence.swift       versioned local JSON store
 │   │   └── SyncMessage.swift       phone ⇄ watch messages
-│   └── Tests/RockyCoreTests/       132 XCTest cases
+│   └── Tests/RockyCoreTests/       151 XCTest cases
 ├── App/
 │   ├── Shared/                     TrainingStore, WorkoutController, SpeechService (cs-CZ),
 │   │                               WatchSyncService (WatchConnectivity), protocols
@@ -81,8 +81,9 @@ swift test
   session mixing with the user's music and ducking it while speaking.
 - **Watch**: `HKWorkoutSession` (functional strength training) keeps the timer running with the
   display off and writes the workout to Health; distinct haptic patterns per event.
-- **Catch-up debt**: deterministic day-by-day replay of the plan; missed slot → catch-up next day
-  (replaces that day's workout), escalating reminders until 22:30, shortened 2-round version for
+- **Catch-up debt**: deterministic day-by-day replay of the plan; missed slot → catch-up the next
+  day, even a rest day (on a training day it replaces that day's workout); every day with debt gets
+  escalating reminders (set hour, +1 h, +2 h, max 22:30), shortened 2-round version for
   debt older than 2 days, illness/injury clears debt with an easy return.
 
 Open questions and all interpretation choices: [docs/DECISIONS.md](docs/DECISIONS.md).

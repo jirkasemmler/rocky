@@ -84,13 +84,16 @@ For **both** targets (`Rocky` = iPhone, `RockyWatch` = watch) in *Signing & Capa
 - [ ] Watch: wrist down / display off → haptics still on time; workout appears in Health with
       heart rate, active energy and duration.
 - [ ] Watch without phone in range → workout works; session appears on the phone after reconnect.
-- [ ] Reminder at the set hour with today's workout name; on a catch-up day +1 h / +2 h,
-      not after 22:30; reminders stop after the workout is saved.
+- [ ] Reminder at the set hour with today's workout name; on every day with debt (also a rest
+      day, e.g. Thursday after a skipped Wednesday) +1 h / +2 h, not after 22:30; reminders
+      stop after the workout is saved.
+- [ ] Skip a training day, do the catch-up the next (rest) day → it shows as caught up.
+- [ ] Stretch at the end is always 2:00 (Settings show it read-only).
 - [ ] Haptic patterns on the watch are distinguishable (start / last 3 s / rest / round end).
 
 ## 6. What was verified on Linux (for reference)
 
-- `Packages/RockyCore`: `swift test` — 132 XCTest tests passing (Swift 6.4.2, Linux x86_64).
+- `Packages/RockyCore`: `swift test` — 151 XCTest tests passing (Swift 6.4.2, Linux x86_64).
 - `App/Shared` files that only use Foundation/Observation (`TrainingStore`, `WorkoutController`,
   `Formatting`, protocols) type-check against RockyCore on Linux in a scratch package.
 - All `App/**/*.swift` files pass `swiftc -parse` (syntax only — **not** a type check against

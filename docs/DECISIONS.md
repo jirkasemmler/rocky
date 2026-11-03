@@ -12,7 +12,7 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
 | # | PRD question | Proposed default | Where it lives | Status |
 |---|---|---|---|---|
 | Q-1 | Latest hour for escalating notifications? | **22:30**. Escalation = reminder at the set hour, +1 h, +2 h, capped at 22:30; if the set hour itself is after 22:30 only that one reminder is sent. Editable in Settings ("Nejpozději"). | `Settings.latestEscalation`, `DebtPlanner.reminderTimes` | **confirmed by Jiri, 2026-11-03** |
-| Q-2 | Only a shortened version when debt is older than 2 days? | **Yes.** Debt older than 2 days (travel days are not counted) collapses to a single *shortened* catch-up (2 rounds). No further debt is accumulated or nagged about until it is paid. Doing the shortened workout clears the whole long debt. | `DebtPlanner.longDebtThresholdDays`, `DebtPlanner.shortenedRounds` | **confirmed by Jiri, 2026-11-03** |
+| Q-2 | Only a shortened version when debt is older than 2 days? | **Yes.** Debt older than 2 days (travel days are not counted) collapses to a single *shortened* catch-up (2 rounds). No further debt is accumulated until it is paid; the shortened catch-up stays due every day (rest days included) with escalating reminders. Doing the shortened workout clears the whole long debt. | `DebtPlanner.longDebtThresholdDays`, `DebtPlanner.shortenedRounds` | **confirmed by Jiri, 2026-11-03** |
 | Q-3 | Male or female voice, speech rate? | **System Czech voice, default female "Zuzana"** (best installed quality: premium > enhanced > default). Voice is selectable among installed cs-CZ voices; speech rate is a slider in Settings (default 0.5 = iOS default rate). | `Settings.voiceIdentifier` (nil = Zuzana), `Settings.speechRate`, `SpeechService.voice(identifier:)` | **confirmed by Jiri, 2026-11-03** |
 | Q-4 | Music / metronome for lowering tempo? | **Out of v1.** The app plays alongside the user's own music (mix + ducking). A tempo metronome ("3 s down") can be added later as an optional cue type. | — | **confirmed by Jiri, 2026-11-03** |
 
@@ -20,19 +20,35 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
 
 - **D-01 Training days default Mon/Wed/Fri, reminder 19:00.** PRD says "e.g. Mon, Wed, Fri" and
   "evening". Both editable. *(**confirmed by Jiri, 2026-11-03**)*
-- **D-02 Stretching default 2 min.** PRD says "short stretch" without a length. Editable (0–10 min).
-  *(proposed, awaiting Jiri's confirmation)*
-- **D-03 Escalation only on catch-up days by default.** PRD describes escalation in the catch-up
-  section. Normal training days get one reminder; a Settings toggle ("Stupňovat i v běžné dny")
-  enables escalation on every training day. *(proposed, awaiting Jiri's confirmation)*
-- **D-04 A catch-up replaces that day's planned workout**, and that day's own slot then becomes the
-  next debt if it was a training day (PRD: max 1 workout per day, the week gets denser, rotation
-  A/B/C shifts).
+- **D-02 Stretching is fixed at exactly 2 minutes.** PRD says "short stretch" without a length.
+  It is no longer a setting: `IntervalSettings.stretchSeconds` is a 120 s constant and every plan
+  (also the shortened 2-round one) ends with it. Settings show it read-only. A `stretchSeconds`
+  value saved by an older build (e.g. 0 or 600) is ignored when loading; the constant is still
+  written to JSON so an older paired watch/phone build can decode it.
+  *(**confirmed by Jiri, 2026-11-03**)*
+- **D-03 Escalation: always on debt days; planned days without debt by toggle.** Every day with
+  outstanding debt — planned or not, weekend included — gets the reminder at the set hour, +1 h
+  and +2 h, never after `latestEscalation` (22:30; +2 h collapses into the cap, a set hour after
+  the cap gives a single reminder). The toggle "Stupňovat i v běžné tréninkové dny" (default
+  off) only affects planned and easy-return days without debt: off = one reminder at the set
+  hour, on = the same escalation. Reminders stop once the day's workout is saved.
+  *(**confirmed by Jiri, 2026-11-03**)*
+- **D-04 Catch-up on any day; it replaces a planned workout.** A missed slot is due the very next
+  day whether or not it is a training day (skip Wednesday → catch up on Thursday). It can be done
+  and recorded on any day (rest days and weekends included); any completed workout on a debt day
+  pays the oldest debt. On a planned day the catch-up replaces that day's workout, and that day's
+  own slot becomes the next debt (PRD: max 1 workout per day — a second workout the same day
+  does not count; the week gets denser, rotation A/B/C shifts). Notifications are re-planned for
+  today + 7 days after every saved session/postponement and on app start, projecting misses
+  (a slot not done by 23:59 already has next-day catch-up reminders scheduled).
+  *(**confirmed by Jiri, 2026-11-03**)*
 - **D-05 Illness/injury** clears all debt, excuses the day and the next workout is an
   "easy return" (shortened, 2 rounds). **Travel** excuses the day without creating new debt but
   keeps existing debt (it is just not aged during travel days).
 - **D-06 Bonus workouts on rest days are allowed** (they advance the A/B/C rotation and are saved
-  as kind `bonus`) but do not fill or create slots.
+  as kind `bonus`) but do not fill or create slots. Only on rest days **without debt**: with
+  debt, Home offers the catch-up instead, and a workout done that day pays the debt even if it
+  was saved as bonus (no conflict with D-04).
 - **D-07 Announcement timing.** PRD: "announce the exercise 3 s before start and count down 3-2-1".
   Both cannot be spoken in the same 3 s, so the next exercise is announced at **T−6 s** (finishing
   before the countdown) and "tři, dva, jedna" is spoken at T−3/−2/−1. Configurable
