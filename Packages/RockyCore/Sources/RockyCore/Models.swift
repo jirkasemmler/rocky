@@ -478,6 +478,10 @@ public struct Settings: Codable, Sendable, Equatable {
     public var watchSoundEnabled: Bool
     /// Also escalate reminders on regular (non catch-up) days.
     public var escalateOnPlannedDays: Bool
+    /// "Rockyho hlášky": funny, motivating flavour lines in voice, notifications and UI.
+    public var rockyLinesEnabled: Bool
+    /// How Rocky addresses the user, in vocative (e.g. "Jiří"). Empty = "šampione".
+    public var address: String
 
     public init(
         trainingDays: Set<Weekday> = [.monday, .wednesday, .friday],
@@ -491,7 +495,9 @@ public struct Settings: Codable, Sendable, Equatable {
         voiceIdentifier: String? = nil,
         speechRate: Double = 0.5,
         watchSoundEnabled: Bool = false,
-        escalateOnPlannedDays: Bool = false
+        escalateOnPlannedDays: Bool = false,
+        rockyLinesEnabled: Bool = true,
+        address: String = ""
     ) {
         self.trainingDays = trainingDays
         self.reminderTime = reminderTime
@@ -505,9 +511,38 @@ public struct Settings: Codable, Sendable, Equatable {
         self.speechRate = speechRate
         self.watchSoundEnabled = watchSoundEnabled
         self.escalateOnPlannedDays = escalateOnPlannedDays
+        self.rockyLinesEnabled = rockyLinesEnabled
+        self.address = address
     }
 
     public static let `default` = Settings()
+
+    private enum CodingKeys: String, CodingKey {
+        case trainingDays, reminderTime, latestEscalation, intervals, voiceEnabled, volume, vibrationEnabled
+        case techniqueTipsEnabled, voiceIdentifier, speechRate, watchSoundEnabled, escalateOnPlannedDays
+        case rockyLinesEnabled, address
+    }
+
+    /// Tolerant decoding: missing keys (older files, fields added later) fall back to defaults,
+    /// so an app update never throws away the user's history.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = Settings()
+        trainingDays = try c.decodeIfPresent(Set<Weekday>.self, forKey: .trainingDays) ?? d.trainingDays
+        reminderTime = try c.decodeIfPresent(TimeOfDay.self, forKey: .reminderTime) ?? d.reminderTime
+        latestEscalation = try c.decodeIfPresent(TimeOfDay.self, forKey: .latestEscalation) ?? d.latestEscalation
+        intervals = try c.decodeIfPresent(IntervalSettings.self, forKey: .intervals) ?? d.intervals
+        voiceEnabled = try c.decodeIfPresent(Bool.self, forKey: .voiceEnabled) ?? d.voiceEnabled
+        volume = try c.decodeIfPresent(Double.self, forKey: .volume) ?? d.volume
+        vibrationEnabled = try c.decodeIfPresent(Bool.self, forKey: .vibrationEnabled) ?? d.vibrationEnabled
+        techniqueTipsEnabled = try c.decodeIfPresent(Bool.self, forKey: .techniqueTipsEnabled) ?? d.techniqueTipsEnabled
+        voiceIdentifier = try c.decodeIfPresent(String.self, forKey: .voiceIdentifier)
+        speechRate = try c.decodeIfPresent(Double.self, forKey: .speechRate) ?? d.speechRate
+        watchSoundEnabled = try c.decodeIfPresent(Bool.self, forKey: .watchSoundEnabled) ?? d.watchSoundEnabled
+        escalateOnPlannedDays = try c.decodeIfPresent(Bool.self, forKey: .escalateOnPlannedDays) ?? d.escalateOnPlannedDays
+        rockyLinesEnabled = try c.decodeIfPresent(Bool.self, forKey: .rockyLinesEnabled) ?? d.rockyLinesEnabled
+        address = try c.decodeIfPresent(String.self, forKey: .address) ?? d.address
+    }
 }
 
 // MARK: - Postponement

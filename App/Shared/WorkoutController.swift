@@ -30,6 +30,8 @@ final class WorkoutController {
     @ObservationIgnored private var runner: WorkoutRunner?
     @ObservationIgnored private var tickTask: Task<Void, Never>?
     @ObservationIgnored private var cueConfig = VoiceCueConfig()
+    @ObservationIgnored private var rockyLinesEnabled = true
+    @ObservationIgnored private var address = ""
     @ObservationIgnored let speech: SpeechSpeaking?
     @ObservationIgnored let haptics: HapticsPlaying?
     @ObservationIgnored let audio: AudioSessionControlling?
@@ -63,6 +65,26 @@ final class WorkoutController {
         speech?.volume = settings.volume
         haptics?.isEnabled = settings.vibrationEnabled
         cueConfig.techniqueTipsEnabled = settings.techniqueTipsEnabled
+        rockyLinesEnabled = settings.rockyLinesEnabled
+        address = settings.address
+    }
+
+    /// "Rockyho hlášky" for this session. Seeded from the session ID, so a mirrored workout
+    /// picks the same lines on iPhone and Watch, yet every workout sounds a bit different.
+    private func rockyLinesConfig(sessionID: UUID, kind: SessionKind, roundsOverride: Int?) -> RockyLinesConfig? {
+        guard rockyLinesEnabled else { return nil }
+        let opening: RockyLinesConfig.Opening
+        if roundsOverride != nil {
+            opening = .shortened
+        } else if kind == .catchUp {
+            opening = .catchUp
+        } else {
+            opening = .normal
+        }
+        let seed = withUnsafeBytes(of: sessionID.uuid) { raw in
+            raw.prefix(8).reduce(UInt64(0)) { ($0 << 8) | UInt64($1) }
+        }
+        return RockyLinesConfig(seed: seed, address: address, opening: opening)
     }
 
     // MARK: Lifecycle
@@ -72,7 +94,9 @@ final class WorkoutController {
                broadcast: Bool = true) {
         stopTicking()
         let plan = WorkoutPlan(workout: WorkoutLibrary.workout(workoutID), intervals: intervals, roundsOverride: roundsOverride)
-        let runner = WorkoutRunner(plan: plan, cueConfig: cueConfig, checklist: Checklist(pre: pre))
+        var config = cueConfig
+        config.rockyLines = rockyLinesConfig(sessionID: sessionID, kind: kind, roundsOverride: roundsOverride)
+        let runner = WorkoutRunner(plan: plan, cueConfig: config, checklist: Checklist(pre: pre))
         self.plan = plan
         self.runner = runner
         self.sessionID = sessionID
@@ -166,7 +190,7 @@ final class WorkoutController {
     private func handle(_ output: WorkoutRunner.Output) {
         for cue in output.cues {
             if let pattern = cue.haptic { haptics?.play(pattern) }
-            let interruptible = cue.kind == .techniqueTip || cue.kind == .announceNext
+            let interruptible = cue.kind == .techniqueTip || cue.kind == .announceNext || cue.kind == .flavor
             speech?.speak(cue.text, interruptible: interruptible)
             lastCueText = cue.text
         }

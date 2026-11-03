@@ -258,7 +258,9 @@ public struct DebtPlanner: Sendable {
                 body = "Dnes naposledy. Odložit jde jen s důvodem.\(suffix)"
             }
             let id = "reminder-\(dayKey(rec.day))-\(level)"
-            return Reminder(id: id, fireDate: date, level: level, title: title, body: body, isCatchUp: isCatchUp)
+            return Reminder(id: id, fireDate: date, level: level, title: title,
+                            body: flavored(body, day: rec.day, level: level, catchUp: isCatchUp, shortened: due.isShortened),
+                            isCatchUp: isCatchUp)
         }
     }
 
@@ -454,6 +456,16 @@ public struct DebtPlanner: Sendable {
             }
             return WeekDayOverview(day: day, weekday: wd, isSlot: isSlot, status: status)
         }
+    }
+
+    /// Prepends a deterministic "Rockyho hláška" (per day and level) to catch-up / shortened
+    /// reminders when enabled. The functional text always stays in the body.
+    private func flavored(_ body: String, day: Date, level: Int, catchUp: Bool, shortened: Bool) -> String {
+        guard settings.rockyLinesEnabled, catchUp || shortened else { return body }
+        let dayNumber = UInt64(max(0, Int(day.timeIntervalSinceReferenceDate / 86_400)))
+        let line = RockyPhrasebook.line(shortened ? .shortened : .catchUp, key: dayNumber &* 31 &+ UInt64(level),
+                                        address: settings.address)
+        return "\(line) \(body)"
     }
 
     private func dayKey(_ day: Date) -> String {

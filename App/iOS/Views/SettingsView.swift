@@ -85,6 +85,17 @@ struct SettingsView: View {
                 }
             }
 
+            Section {
+                Toggle("Rockyho hlášky", isOn: $draft.rockyLinesEnabled)
+                TextField("Oslovení (5. pád, např. Jiří)", text: $draft.address)
+                    .textInputAutocapitalization(.words)
+                    .disabled(!draft.rockyLinesEnabled)
+            } header: {
+                Text("Rocky")
+            } footer: {
+                Text("Vtipné a motivační hlášky během tréninku, v připomínkách a na úvodní obrazovce. Pokyny ke cvikům a odpočet zůstávají vždy stručné. Bez oslovení říká Rocky „šampione“.")
+            }
+
             Section("Vibrace a hodinky") {
                 Toggle("Vibrace", isOn: $draft.vibrationEnabled)
                 Toggle("Hlas i z hodinek", isOn: $draft.watchSoundEnabled)

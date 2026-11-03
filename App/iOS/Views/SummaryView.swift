@@ -23,6 +23,11 @@ struct SummaryView: View {
                           systemImage: completed ? "checkmark.seal.fill" : "flag.checkered")
                         .font(.title.bold())
                         .foregroundStyle(completed ? .green : .orange)
+                    if completed, store.settings.rockyLinesEnabled {
+                        Text(RockyPhrasebook.line(.workoutFinished, key: UInt64(workout.sessionID.uuid.0),
+                                                  address: store.settings.address))
+                            .font(.headline)
+                    }
                     if let draft {
                         Text("\(LocalizedText.workoutName(draft.workoutID)) · \(draft.kind.label) · \(Format.rounds(draft.rounds))")
                             .foregroundStyle(.secondary)

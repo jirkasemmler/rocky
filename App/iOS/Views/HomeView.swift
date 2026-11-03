@@ -11,6 +11,10 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 header(state)
+                if store.settings.rockyLinesEnabled,
+                   let line = RockyLines.homeLine(state: state, day: state.today, address: store.settings.address) {
+                    InfoCard(systemImage: "figure.boxing", text: line)
+                }
                 if state.debt.hasDebt {
                     DebtBannerView(debt: state.debt)
                 }

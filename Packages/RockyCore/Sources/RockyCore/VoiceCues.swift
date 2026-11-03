@@ -26,6 +26,8 @@ public enum VoiceCueKind: String, Sendable, Codable, CaseIterable {
     case stretchStart
     /// "Konec tréninku".
     case workoutEnd
+    /// Optional "Rockyho hlášky" flavour line; always after the functional cue at the same offset.
+    case flavor
 }
 
 /// A single spoken cue, positioned relative to the start of a phase. Because the position is
@@ -66,13 +68,40 @@ public struct VoiceCueConfig: Sendable, Equatable {
     /// Rough time a tip needs to be spoken; a tip is only scheduled if it fits before the announcement.
     public var tipWindowSeconds: TimeInterval
 
+    /// Flavour lines; `nil` = off (functional cues only).
+    public var rockyLines: RockyLinesConfig?
+
     public init(countdownSeconds: Int = 3, announceLeadSeconds: TimeInterval = 6, techniqueTipsEnabled: Bool = true,
-                tipsOnlyFirstRound: Bool = true, tipWindowSeconds: TimeInterval = 6) {
+                tipsOnlyFirstRound: Bool = true, tipWindowSeconds: TimeInterval = 6, rockyLines: RockyLinesConfig? = nil) {
+        self.rockyLines = rockyLines
         self.countdownSeconds = countdownSeconds
         self.announceLeadSeconds = announceLeadSeconds
         self.techniqueTipsEnabled = techniqueTipsEnabled
         self.tipsOnlyFirstRound = tipsOnlyFirstRound
         self.tipWindowSeconds = tipWindowSeconds
+    }
+}
+
+/// Flavour configuration for one workout.
+public struct RockyLinesConfig: Sendable, Equatable {
+    public enum Opening: String, Sendable, Equatable {
+        /// Regular workout → `workoutStart` line.
+        case normal
+        /// Catch-up of a missed workout → `catchUp` line.
+        case catchUp
+        /// Shortened (2-round) version → `shortened` line.
+        case shortened
+    }
+
+    public var seed: UInt64
+    /// Vocative form of address, e.g. "Jiří"; empty = "šampione".
+    public var address: String
+    public var opening: Opening
+
+    public init(seed: UInt64, address: String = "", opening: Opening = .normal) {
+        self.seed = seed
+        self.address = address
+        self.opening = opening
     }
 }
 
@@ -138,6 +167,11 @@ public struct VoiceCueScheduler: Sendable {
     private static func build(plan: WorkoutPlan, config: VoiceCueConfig) -> [[VoiceCue]] {
         var result: [[VoiceCue]] = Array(repeating: [], count: plan.phases.count)
         let phases = plan.phases
+        var book = config.rockyLines.map { RockyPhrasebook(address: $0.address, seed: $0.seed) }
+        func flavor(_ phase: Phase, _ offset: TimeInterval, _ category: RockyLineCategory) -> VoiceCue? {
+            guard let text = book?.line(category) else { return nil }
+            return VoiceCue(phaseIndex: phase.index, offset: offset, kind: .flavor, text: text, haptic: nil)
+        }
 
         for phase in phases {
             var cues: [VoiceCue] = []
@@ -168,6 +202,30 @@ public struct VoiceCueScheduler: Sendable {
                                      text: "\(prefix)Teď protažení. \(WorkoutLibrary.stretchDescription)", haptic: .roundEnd))
             }
 
+            // 1b) Rockyho hlášky (optional), spoken right after the functional start cue.
+            if config.rockyLines != nil {
+                var lines: [VoiceCue?] = []
+                if phase.index == 0 {
+                    let category: RockyLineCategory
+                    switch config.rockyLines?.opening ?? .normal {
+                    case .normal: category = .workoutStart
+                    case .catchUp: category = .catchUp
+                    case .shortened: category = .shortened
+                    }
+                    lines.append(flavor(phase, 0, category))
+                }
+                switch phase.kind {
+                case .exercise:
+                    // 2nd and 4th exercise of each round: enough spice, not a monologue.
+                    if let i = phase.exerciseIndex, i % 2 == 1 { lines.append(flavor(phase, 0, .exerciseChange)) }
+                case .roundRest:
+                    if let r = phase.round, r == plan.rounds - 1 { lines.append(flavor(phase, 0, .lastRound)) }
+                default:
+                    break
+                }
+                cues += lines.compactMap { $0 }
+            }
+
             // 2) Side switch halfway through one-side-then-other exercises.
             if phase.kind == .exercise, phase.exercise?.switchesSideMidway == true, d >= 10 {
                 cues.append(VoiceCue(phaseIndex: phase.index, offset: (d / 2).rounded(.down), kind: .switchSide,
@@ -193,6 +251,12 @@ public struct VoiceCueScheduler: Sendable {
                 }
             }
 
+            // 3b) Rest flavour only where no technique tip is spoken (tips win, they are useful).
+            if phase.kind == .rest, !cues.contains(where: { $0.kind == .techniqueTip }),
+               let line = flavor(phase, 0, .rest) {
+                cues.append(line)
+            }
+
             // 4) Countdown in the last seconds of every timed phase except the stretch.
             if phase.kind != .stretch, config.countdownSeconds > 0 {
                 let n = min(config.countdownSeconds, Int(d.rounded(.down)) - 1)
@@ -208,6 +272,7 @@ public struct VoiceCueScheduler: Sendable {
             if phase.index == phases.count - 1 {
                 cues.append(VoiceCue(phaseIndex: phase.index, offset: d, kind: .workoutEnd,
                                      text: "Konec tréninku. Skvělá práce!", haptic: .workoutEnd))
+                if let line = flavor(phase, d, .workoutFinished) { cues.append(line) }
             }
             result[phase.index] = cues.sorted { ($0.offset, order($0.kind)) < ($1.offset, order($1.kind)) }
         }
