@@ -79,4 +79,27 @@ final class ScreenshotTour: XCTestCase {
             app.terminate()
         }
     }
+
+    /// Starts a workout on the phone and keeps it running so the paired watch can be checked
+    /// (`TEST_RUNNER_ROCKY_SYNC_HOLD=<seconds>`). Ends it at the end so the save reaches the watch.
+    func testHoldRunningWorkoutForSyncCheck() throws {
+        guard let hold = ProcessInfo.processInfo.environment["ROCKY_SYNC_HOLD"].flatMap(UInt32.init) else {
+            throw XCTSkip("ROCKY_SYNC_HOLD not set")
+        }
+        launch()
+        _ = app.navigationBars["Rocky"].waitForExistence(timeout: 5)
+        (app.buttons["startToday"].exists ? app.buttons["startToday"] : app.buttons["startBonus"]).tap()
+        app.swipeUp(); app.swipeUp()
+        app.buttons["startWorkout"].tap()
+        sleep(hold)
+        app.buttons["skipButton"].tap()
+        sleep(hold)
+        app.buttons["endWorkout"].tap()
+        app.buttons["Ukončit"].tap()
+        _ = app.buttons["difficulty2"].waitForExistence(timeout: 5)
+        app.buttons["difficulty2"].tap()
+        app.swipeUp()
+        app.buttons["saveSession"].tap()
+        sleep(hold)
+    }
 }

@@ -32,7 +32,13 @@ final class WatchSyncService: NSObject, WatchSyncing {
         guard let session, session.activationState == .activated, let info = try? message.userInfo() else { return }
         switch message {
         case .sessionSaved, .settingsChanged:
+            // Durable, queued delivery (works when the other side is away)...
             session.transferUserInfo(info)
+            // ...plus immediate delivery when reachable, so the other device closes its summary
+            // right away. Duplicates are harmless: sessions are merged by id, settings are equal.
+            if session.isReachable {
+                session.sendMessage(info, replyHandler: nil, errorHandler: nil)
+            }
         case .workoutStarted, .command:
             // Live commands are only useful right now; drop them if the other side is not reachable.
             if session.isReachable {

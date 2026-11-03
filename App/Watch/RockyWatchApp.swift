@@ -73,7 +73,10 @@ struct RockyWatchApp: App {
                 .environment(store)
                 .environment(workout)
                 .environment(health)
-                .task { await health.requestAuthorization() }
+                .task {
+                    guard !AppConstants.isUITesting else { return }
+                    await health.requestAuthorization()
+                }
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }
                     store.refresh()
