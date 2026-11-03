@@ -107,7 +107,11 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
   an interval runs to completion; a manual untick of an auto-ticked item is re-applied on the
   next tick. Manual ticks of skipped items are kept.
 - **D-21 Storage.** One JSON file (`training-data.json`, schemaVersion 1) in the App Group
-  container (iPhone) / app container (watch). No accounts, no network, no telemetry.
+  container `group.cz.semmler.rocky` on each device (iPhone app; watch app + complication
+  extension, which reads the watch's file). App Groups do not share data between the devices;
+  that goes over WatchConnectivity (D-18). No accounts, no network, no telemetry.
+  *(changed 2026-11-03: the watch used its app container; the complication needs to read the
+  data, so the watch app joined the App Group. Nothing was installed yet, so no migration.)*
 - **D-22 Bundle IDs** `cz.semmler.rocky` and `cz.semmler.rocky.watchkitapp`, App Group
   `group.cz.semmler.rocky`. Change them in `project.yml` if you use a different prefix.
   *(set with the rename to Rocky requested by Jiri, 2026-11-03)*
@@ -132,7 +136,6 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
 
 ## C. Not implemented yet (known gaps vs. PRD)
 
-- Watch **complication** (PRD 8a) — needs a WidgetKit extension target; not created yet.
 - "Graph of the week" exists on Home (minutes per day); no per-session timing graph yet.
 - iCloud/backup/export — out of scope (PRD: data only on device).
 - Localization catalog: UI strings are Czech literals in code (single-language app per PRD).

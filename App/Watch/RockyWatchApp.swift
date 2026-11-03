@@ -1,5 +1,6 @@
-import SwiftUI
 import RockyCore
+import SwiftUI
+import WidgetKit
 
 @main
 struct RockyWatchApp: App {
@@ -27,6 +28,9 @@ struct RockyWatchApp: App {
             // Partial workouts are still real exercise; save them to Health too.
             Task { await health.end(at: date, save: true) }
         }
+
+        // Complication shows today's workout / debt: refresh it after every local change.
+        store.onChange = { _ in WidgetCenter.shared.reloadAllTimelines() }
 
         WatchAppDelegate.onWorkoutConfiguration = { [weak workout] _ in
             // Launched by the phone: start the HKWorkoutSession now (keeps the app running); the

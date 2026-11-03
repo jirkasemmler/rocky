@@ -93,6 +93,8 @@ targets:
       - path: App/Assets.xcassets
     dependencies:
       - package: RockyCore
+      - target: RockyWatchWidgets
+        embed: true
     info:
       path: App/Watch/Info.plist
       properties:
@@ -112,10 +114,46 @@ targets:
       properties:
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access: []
+        # Shared with the complication extension (reads the watch's local JSON), D-21.
+        com.apple.security.application-groups:
+          - group.cz.semmler.rocky
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: cz.semmler.rocky.watchkitapp
         PRODUCT_NAME: RockyWatch
+        TARGETED_DEVICE_FAMILY: "4"
+        SKIP_INSTALL: YES
+
+  RockyWatchWidgets:
+    type: app-extension
+    platform: watchOS
+    deploymentTarget: "26.0"
+    sources:
+      - path: App/WatchWidgets
+      - path: App/Shared/AppConstants.swift
+      - path: App/Shared/Formatting.swift
+      - path: App/Shared/TrainingStore.swift
+    dependencies:
+      - package: RockyCore
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    info:
+      path: App/WatchWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Rocky
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: App/WatchWidgets/RockyWatchWidgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.cz.semmler.rocky
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cz.semmler.rocky.watchkitapp.widgets
+        PRODUCT_NAME: RockyWatchWidgets
         TARGETED_DEVICE_FAMILY: "4"
         SKIP_INSTALL: YES
 
