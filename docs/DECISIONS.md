@@ -87,6 +87,9 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
   verified on Linux). App targets use Swift 5 mode with `SWIFT_STRICT_CONCURRENCY=complete`
   (diagnostics as warnings) so that the first Xcode build is not blocked by SDK-specific
   concurrency errors that could not be checked on Linux. Plan: fix warnings, then switch to 6.
+  *(done 2026-11-03: the first Mac build had no concurrency warnings, so all app targets now use
+  Swift 6 language mode; builds clean and the UI tests pass with Swift 6 runtime isolation
+  checks.)*
 - **D-17 HealthKit writes only from the watch** (HKWorkoutSession + HKLiveWorkoutBuilder, type
   functional strength training). A workout started on the phone is mirrored to the watch if it is
   reachable, so the watch records it. Phone-only workouts are not written to Health in v1.
