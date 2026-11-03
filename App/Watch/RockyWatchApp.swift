@@ -31,6 +31,8 @@ struct RockyWatchApp: App {
             switch message {
             case let .sessionSaved(session, origin) where origin == .phone:
                 store?.save(session)
+            case .sessionSaved:
+                break
             case let .settingsChanged(settings):
                 store?.updateSettings(settings)
                 workout?.apply(settings: settings, speechEnabled: settings.watchSoundEnabled && settings.voiceEnabled)
