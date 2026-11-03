@@ -1,5 +1,5 @@
 import XCTest
-@testable import TrainingCore
+@testable import RockyCore
 
 final class WorkoutRunnerTests: XCTestCase {
     let t0 = T.date(2026, 11, 2, 19, 0)

@@ -1,6 +1,6 @@
 import Charts
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 /// PRD screen "Historie a progrese".
 struct HistoryView: View {

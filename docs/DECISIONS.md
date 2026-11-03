@@ -66,7 +66,7 @@ implementation. They are all configurable or isolated in one place so they can b
   without deactivating the session. Fallback if it does not: keep `.duckOthers` for the whole
   workout (music slightly quieter throughout), or pre-render cues with
   `AVSpeechSynthesizer.write` and schedule them on the running engine.
-- **D-16 Swift language mode.** `TrainingCore` uses Swift 6 language mode (strict concurrency,
+- **D-16 Swift language mode.** `RockyCore` uses Swift 6 language mode (strict concurrency,
   verified on Linux). App targets use Swift 5 mode with `SWIFT_STRICT_CONCURRENCY=complete`
   (diagnostics as warnings) so that the first Xcode build is not blocked by SDK-specific
   concurrency errors that could not be checked on Linux. Plan: fix warnings, then switch to 6.
@@ -87,8 +87,8 @@ implementation. They are all configurable or isolated in one place so they can b
   next tick. Manual ticks of skipped items are kept.
 - **D-21 Storage.** One JSON file (`training-data.json`, schemaVersion 1) in the App Group
   container (iPhone) / app container (watch). No accounts, no network, no telemetry.
-- **D-22 Bundle IDs** `cz.semmler.traningapp` and `cz.semmler.traningapp.watchkitapp`, App Group
-  `group.cz.semmler.traningapp`. Change them in `project.yml` if you use a different prefix.
+- **D-22 Bundle IDs** `cz.semmler.rocky` and `cz.semmler.rocky.watchkitapp`, App Group
+  `group.cz.semmler.rocky`. Change them in `project.yml` if you use a different prefix.
   *(proposed, awaiting Jiri's confirmation)*
 
 ## C. Not implemented yet (known gaps vs. PRD)

@@ -1,5 +1,5 @@
 import Foundation
-@testable import TrainingCore
+@testable import RockyCore
 
 enum T {
     static let cal: Calendar = .prague

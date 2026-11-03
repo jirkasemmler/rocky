@@ -1,6 +1,6 @@
 import Charts
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 /// PRD screen "Home": today's workout button, the week overview, debt banner.
 struct HomeView: View {
@@ -27,7 +27,7 @@ struct HomeView: View {
             }
             .padding()
         }
-        .navigationTitle("Osobní trenér")
+        .navigationTitle("Rocky")
         .refreshable { store.refresh() }
         .task {
             // Keep "today" fresh while the screen is open (e.g. across midnight).

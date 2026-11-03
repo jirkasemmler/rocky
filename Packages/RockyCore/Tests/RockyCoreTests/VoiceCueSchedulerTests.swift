@@ -1,5 +1,5 @@
 import XCTest
-@testable import TrainingCore
+@testable import RockyCore
 
 final class VoiceCueSchedulerTests: XCTestCase {
     let plan = WorkoutPlan(workout: WorkoutLibrary.workoutA)

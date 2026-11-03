@@ -1,5 +1,5 @@
 import Foundation
-import TrainingCore
+import RockyCore
 import WatchConnectivity
 
 /// iPhone <-> Watch sync. Live control (start/pause/skip/...) uses `sendMessage` when the

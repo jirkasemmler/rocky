@@ -1,5 +1,5 @@
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 /// Watch "Běžící trénink": exercise, big countdown, round, heart rate; pause / skip.
 struct WatchRunningView: View {

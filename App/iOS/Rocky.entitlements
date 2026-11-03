@@ -8,7 +8,7 @@
 	<array/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.cz.semmler.traningapp</string>
+		<string>group.cz.semmler.rocky</string>
 	</array>
 </dict>
 </plist>

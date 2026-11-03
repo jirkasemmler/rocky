@@ -1,5 +1,5 @@
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 /// PRD screen "Náhled tréninku": exercises, intervals, weight, pre-workout checklist.
 struct WorkoutPreviewView: View {

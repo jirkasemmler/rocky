@@ -1,8 +1,8 @@
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 @main
-struct TrainingWatchApp: App {
+struct RockyWatchApp: App {
     @State private var store: TrainingStore
     @State private var workout: WorkoutController
     @State private var health: WorkoutSessionService

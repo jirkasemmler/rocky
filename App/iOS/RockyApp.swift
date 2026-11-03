@@ -1,8 +1,8 @@
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 @main
-struct TrainingApp: App {
+struct RockyApp: App {
     @State private var store: TrainingStore
     @State private var workout: WorkoutController
     private let sync: WatchSyncService

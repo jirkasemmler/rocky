@@ -1,6 +1,6 @@
 # XcodeGen spec. Generate the Xcode project on a Mac with:  xcodegen generate
 # UNVERIFIED: this project has not been built with Xcode yet (see docs/BUILD-ON-MAC.md).
-name: TrainingApp
+name: Rocky
 
 options:
   bundleIdPrefix: cz.semmler
@@ -18,7 +18,7 @@ settings:
     # Set your team in Xcode (Signing & Capabilities) or here.
     DEVELOPMENT_TEAM: ""
     # App targets use Swift 5 mode with complete concurrency checking (warnings, not errors)
-    # so the first build on a Mac is not blocked by strict-concurrency errors. TrainingCore
+    # so the first build on a Mac is not blocked by strict-concurrency errors. RockyCore
     # itself is built in Swift 6 language mode. See docs/DECISIONS.md (D-16).
     SWIFT_VERSION: "5.0"
     SWIFT_STRICT_CONCURRENCY: complete
@@ -26,11 +26,11 @@ settings:
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
 
 packages:
-  TrainingCore:
-    path: Packages/TrainingCore
+  RockyCore:
+    path: Packages/RockyCore
 
 targets:
-  TrainingApp:
+  Rocky:
     type: application
     platform: iOS
     deploymentTarget: "26.0"
@@ -38,8 +38,8 @@ targets:
       - path: App/iOS
       - path: App/Shared
     dependencies:
-      - package: TrainingCore
-      - target: TrainingWatch
+      - package: RockyCore
+      - target: RockyWatch
         embed: true
         codeSign: true
         copy:
@@ -48,7 +48,7 @@ targets:
     info:
       path: App/iOS/Info.plist
       properties:
-        CFBundleDisplayName: Trenér
+        CFBundleDisplayName: Rocky
         CFBundleDevelopmentRegion: cs
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
@@ -66,19 +66,19 @@ targets:
         NSHealthUpdateUsageDescription: Aplikace ukládá odcvičené tréninky do aplikace Zdraví.
         ITSAppUsesNonExemptEncryption: false
     entitlements:
-      path: App/iOS/TrainingApp.entitlements
+      path: App/iOS/Rocky.entitlements
       properties:
         com.apple.security.application-groups:
-          - group.cz.semmler.traningapp
+          - group.cz.semmler.rocky
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access: []
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: cz.semmler.traningapp
-        PRODUCT_NAME: TrainingApp
+        PRODUCT_BUNDLE_IDENTIFIER: cz.semmler.rocky
+        PRODUCT_NAME: Rocky
         TARGETED_DEVICE_FAMILY: "1"
 
-  TrainingWatch:
+  RockyWatch:
     type: application
     platform: watchOS
     deploymentTarget: "26.0"
@@ -86,46 +86,46 @@ targets:
       - path: App/Watch
       - path: App/Shared
     dependencies:
-      - package: TrainingCore
+      - package: RockyCore
     info:
       path: App/Watch/Info.plist
       properties:
-        CFBundleDisplayName: Trenér
+        CFBundleDisplayName: Rocky
         CFBundleDevelopmentRegion: cs
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         WKApplication: true
-        WKCompanionAppBundleIdentifier: cz.semmler.traningapp
+        WKCompanionAppBundleIdentifier: cz.semmler.rocky
         # HKWorkoutSession keeps the app running during the workout.
         WKBackgroundModes:
           - workout-processing
         NSHealthShareUsageDescription: Aplikace čte tep a energii z tréninku, aby ti je ukázala v souhrnu.
         NSHealthUpdateUsageDescription: Aplikace ukládá odcvičené tréninky do aplikace Zdraví.
     entitlements:
-      path: App/Watch/TrainingWatch.entitlements
+      path: App/Watch/RockyWatch.entitlements
       properties:
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access: []
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: cz.semmler.traningapp.watchkitapp
-        PRODUCT_NAME: TrainingWatch
+        PRODUCT_BUNDLE_IDENTIFIER: cz.semmler.rocky.watchkitapp
+        PRODUCT_NAME: RockyWatch
         TARGETED_DEVICE_FAMILY: "4"
         SKIP_INSTALL: YES
 
 schemes:
-  TrainingApp:
+  Rocky:
     build:
       targets:
-        TrainingApp: all
-        TrainingWatch: all
+        Rocky: all
+        RockyWatch: all
     run:
       config: Debug
     test:
       config: Debug
-  TrainingWatch:
+  RockyWatch:
     build:
       targets:
-        TrainingWatch: all
+        RockyWatch: all
     run:
       config: Debug

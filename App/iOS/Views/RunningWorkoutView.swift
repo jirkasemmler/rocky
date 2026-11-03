@@ -1,5 +1,5 @@
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 /// PRD screen "Běžící trénink": huge timer readable from ~2 m, round X/3, next exercise,
 /// big pause / skip / back buttons; screen stays awake.

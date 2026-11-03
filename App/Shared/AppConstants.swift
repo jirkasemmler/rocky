@@ -3,7 +3,7 @@ import Foundation
 enum AppConstants {
     /// App Group shared by the iOS app (and future widget/complication extensions).
     /// Note: App Groups do NOT share data between iPhone and Watch; that goes over WatchConnectivity.
-    static let appGroupID = "group.cz.semmler.traningapp"
+    static let appGroupID = "group.cz.semmler.rocky"
     static let dataFileName = "training-data.json"
 
     /// Local JSON file in the App Group container (falls back to Application Support).

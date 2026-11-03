@@ -1,5 +1,5 @@
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 /// Watch "Start": today's workout (or debt / bonus) and a big start button.
 /// Works without the phone nearby; the session syncs to the phone later.
@@ -34,7 +34,7 @@ struct WatchStartView: View {
                 }
             }
         }
-        .navigationTitle("Trenér")
+        .navigationTitle("Rocky")
     }
 
     private func startButton(id: WorkoutID, kind: SessionKind, rounds: Int?, label: String = "Start") -> some View {

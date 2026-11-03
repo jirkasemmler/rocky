@@ -1,4 +1,4 @@
-# traningapp — Osobní trenér
+# Rocky — osobní trenér
 
 Native iOS (SwiftUI) + Apple Watch app for voice-guided home strength training: three dumbbell
 workouts A/B/C rotated on your training days, an interval timer with Czech voice cues and wrist
@@ -12,7 +12,7 @@ UI and voice are Czech (cs-CZ); code, file names and commits are English.
 
 | Part | State |
 |---|---|
-| `Packages/TrainingCore` (pure Swift, Foundation only) | **Done and tested**: `swift test` → 110 tests, 0 failures (Swift 6.4.2, Linux x86_64, Swift 6 language mode). |
+| `Packages/RockyCore` (pure Swift, Foundation only) | **Done and tested**: `swift test` → 110 tests, 0 failures (Swift 6.4.2, Linux x86_64, Swift 6 language mode). |
 | `App/Shared` (store, workout controller, services) | Written. Foundation/Observation parts **type-check on Linux**; files using Apple frameworks only syntax-checked. |
 | `App/iOS`, `App/Watch` (SwiftUI) | Written, **UNVERIFIED** — never compiled against the iOS/watchOS SDK (no Xcode on Linux). |
 | `project.yml` (XcodeGen) | Generates an Xcode project without errors (XcodeGen 2.46.0 on Linux). Not built. |
@@ -23,10 +23,10 @@ Next step: build on a Mac with Xcode 26 → [docs/BUILD-ON-MAC.md](docs/BUILD-ON
 ## Structure
 
 ```
-traningapp/
+rocky/
 ├── project.yml                     XcodeGen spec: iOS 26 app + watchOS 26 app, local package
-├── Packages/TrainingCore/          shared logic (Foundation only), unit-tested on Linux
-│   ├── Sources/TrainingCore/
+├── Packages/RockyCore/          shared logic (Foundation only), unit-tested on Linux
+│   ├── Sources/RockyCore/
 │   │   ├── Models.swift            Exercise, Workout, Session, Settings, Checklist, ...
 │   │   ├── WorkoutLibrary.swift    workouts A/B/C (Czech names + technique tips)
 │   │   ├── WorkoutPlan.swift       warm-up → 3 rounds (work/rest/round rest) → stretch
@@ -38,13 +38,13 @@ traningapp/
 │   │   ├── DebtPlanner.swift       slots, missed → debt → catch-up, reminders, streak
 │   │   ├── Persistence.swift       versioned local JSON store
 │   │   └── SyncMessage.swift       phone ⇄ watch messages
-│   └── Tests/TrainingCoreTests/    110 XCTest cases
+│   └── Tests/RockyCoreTests/    110 XCTest cases
 ├── App/
 │   ├── Shared/                     TrainingStore, WorkoutController, SpeechService (cs-CZ),
 │   │                               WatchSyncService (WatchConnectivity), protocols
-│   ├── iOS/                        TrainingApp, Views (Home, Preview, Running, Summary, History,
+│   ├── iOS/                        RockyApp, Views (Home, Preview, Running, Summary, History,
 │   │                               Settings, Checklist), Services (audio session, notifications, haptics)
-│   └── Watch/                      TrainingWatchApp, Views (Start, Running, Summary),
+│   └── Watch/                      RockyWatchApp, Views (Start, Running, Summary),
 │                                   Services (HKWorkoutSession, haptics)
 └── docs/
     ├── PRD.md                      requirements (v1.1)
@@ -58,7 +58,7 @@ traningapp/
 Requires Swift 6.x (Linux or macOS):
 
 ```sh
-cd Packages/TrainingCore
+cd Packages/RockyCore
 swift test
 ```
 

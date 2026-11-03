@@ -1,5 +1,5 @@
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 /// PRD screen "Souhrn": difficulty 1–5, weight 0/2/5 kg, note; planned vs. actual time.
 struct SummaryView: View {

@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import TrainingCore
+import RockyCore
 
 extension Calendar {
     /// Device time zone, Monday-first weeks, Czech locale.

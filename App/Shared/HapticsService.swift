@@ -1,5 +1,5 @@
 import Foundation
-import TrainingCore
+import RockyCore
 
 /// Plays the distinct haptic patterns from PRD 8a. Implemented per platform
 /// (`PhoneHapticsService` on iOS, `WatchHapticsService` on watchOS).

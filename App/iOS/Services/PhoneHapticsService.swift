@@ -1,4 +1,4 @@
-import TrainingCore
+import RockyCore
 import UIKit
 
 /// iPhone haptics. Distinct patterns per PRD 8a; the watch has the stronger, wrist-based

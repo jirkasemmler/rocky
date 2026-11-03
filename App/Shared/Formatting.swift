@@ -1,5 +1,5 @@
 import Foundation
-import TrainingCore
+import RockyCore
 
 enum Format {
     /// "0:40", "12:05"

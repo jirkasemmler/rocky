@@ -1,5 +1,5 @@
 import XCTest
-@testable import TrainingCore
+@testable import RockyCore
 
 /// Default plan: Mon/Wed/Fri, reminder 19:00, latest escalation 22:30.
 /// November 2026: Mon 2, Tue 3, Wed 4, Thu 5, Fri 6, Sat 7, Sun 8, Mon 9 ...

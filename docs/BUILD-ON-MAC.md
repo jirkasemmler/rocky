@@ -23,27 +23,27 @@
 
 ## 2. Get the code onto the Mac and generate the project
 
-The repository is local only (no remote). Copy the whole `traningapp` folder to the Mac
-(e.g. `git clone /path/to/traningapp` from a copied folder, or zip it), then:
+The repository is local only (no remote). Copy the whole `rocky` folder to the Mac
+(e.g. `git clone /path/to/rocky` from a copied folder, or zip it), then:
 
 ```sh
-cd traningapp
+cd rocky
 # optional sanity check of the shared logic (also runs on macOS):
-(cd Packages/TrainingCore && swift test)
-xcodegen generate          # creates TrainingApp.xcodeproj from project.yml
-open TrainingApp.xcodeproj
+(cd Packages/RockyCore && swift test)
+xcodegen generate          # creates Rocky.xcodeproj from project.yml
+open Rocky.xcodeproj
 ```
 
-`TrainingApp.xcodeproj` is generated and git-ignored; re-run `xcodegen generate` after changing
+`Rocky.xcodeproj` is generated and git-ignored; re-run `xcodegen generate` after changing
 `project.yml` or adding/removing files.
 
 ## 3. Signing and capabilities
 
-For **both** targets (`TrainingApp` = iPhone, `TrainingWatch` = watch) in *Signing & Capabilities*:
+For **both** targets (`Rocky` = iPhone, `RockyWatch` = watch) in *Signing & Capabilities*:
 
 1. Tick *Automatically manage signing* and choose your **Team**
    (or set `DEVELOPMENT_TEAM` in `project.yml` and regenerate).
-2. If the bundle IDs `cz.semmler.traningapp` / `cz.semmler.traningapp.watchkitapp` are not
+2. If the bundle IDs `cz.semmler.rocky` / `cz.semmler.rocky.watchkitapp` are not
    available to your team, change the prefix in `project.yml` (both IDs **and**
    `WKCompanionAppBundleIdentifier` must match) and regenerate.
 3. Check that these capabilities are present (they come from the generated entitlements and
@@ -52,14 +52,14 @@ For **both** targets (`TrainingApp` = iPhone, `TrainingWatch` = watch) in *Signi
      prompts may appear on the phone).
    - **Background Modes → Audio, AirPlay, and Picture in Picture** — iPhone target (voice cues
      with locked screen). Watch: *Workout processing* (`WKBackgroundModes`).
-   - **App Groups** — iPhone target, `group.cz.semmler.traningapp` (used for the local data file;
+   - **App Groups** — iPhone target, `group.cz.semmler.rocky` (used for the local data file;
      needed later for a widget/complication). If you do not want App Groups, remove it; the app
      falls back to Application Support.
 
 ## 4. Run on device
 
-1. Select scheme **TrainingApp**, your iPhone as destination, **Run**. The watch app is embedded
-   and installs on the paired watch (or select scheme **TrainingWatch** and the watch as
+1. Select scheme **Rocky**, your iPhone as destination, **Run**. The watch app is embedded
+   and installs on the paired watch (or select scheme **RockyWatch** and the watch as
    destination to run/debug it directly).
 2. On first launch allow notifications (iPhone) and Health access (watch).
 3. Czech voice: Settings → Accessibility → Spoken Content → Voices → Czech → download *Zuzana*
@@ -84,12 +84,12 @@ For **both** targets (`TrainingApp` = iPhone, `TrainingWatch` = watch) in *Signi
 
 ## 6. What was verified on Linux (for reference)
 
-- `Packages/TrainingCore`: `swift test` — 110 XCTest tests passing (Swift 6.4.2, Linux x86_64).
+- `Packages/RockyCore`: `swift test` — 110 XCTest tests passing (Swift 6.4.2, Linux x86_64).
 - `App/Shared` files that only use Foundation/Observation (`TrainingStore`, `WorkoutController`,
-  `Formatting`, protocols) type-check against TrainingCore on Linux in a scratch package.
+  `Formatting`, protocols) type-check against RockyCore on Linux in a scratch package.
 - All `App/**/*.swift` files pass `swiftc -parse` (syntax only — **not** a type check against
   UIKit/SwiftUI/HealthKit/WatchConnectivity/AVFoundation).
-- `project.yml` — XcodeGen 2.46.0 (built from source on Linux) generated `TrainingApp.xcodeproj`
-  without errors, including the *Embed Dependencies* phase that copies `TrainingWatch.app` into
+- `project.yml` — XcodeGen 2.46.0 (built from source on Linux) generated `Rocky.xcodeproj`
+  without errors, including the *Embed Dependencies* phase that copies `RockyWatch.app` into
   `$(CONTENTS_FOLDER_PATH)/Watch`, and wrote the committed `Info.plist` / `.entitlements` files.
   Generating a project is not the same as building it.

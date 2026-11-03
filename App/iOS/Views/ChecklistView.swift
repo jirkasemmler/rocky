@@ -1,5 +1,5 @@
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 /// PRD screen "Checklist": before / during (per round & exercise) / after.
 /// Exercise and round items tick automatically when an interval runs to completion; the

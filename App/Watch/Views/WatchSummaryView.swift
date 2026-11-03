@@ -1,5 +1,5 @@
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 /// Watch "Souhrn": quick difficulty 1–5 and weight, then save (synced to the phone).
 struct WatchSummaryView: View {

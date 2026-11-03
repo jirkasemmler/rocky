@@ -1,5 +1,5 @@
 import Foundation
-import TrainingCore
+import RockyCore
 import UserNotifications
 
 /// Local notifications only (no server, PRD 8a). The planner computes the reminders

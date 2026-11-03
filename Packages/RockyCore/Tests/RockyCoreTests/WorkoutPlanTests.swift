@@ -1,5 +1,5 @@
 import XCTest
-@testable import TrainingCore
+@testable import RockyCore
 
 final class WorkoutPlanTests: XCTestCase {
     func testDefaultPlanStructure() {

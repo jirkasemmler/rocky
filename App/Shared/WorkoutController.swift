@@ -1,6 +1,6 @@
 import Foundation
 import Observation
-import TrainingCore
+import RockyCore
 
 /// Drives one running workout on either device: ticks `WorkoutRunner`, forwards cues to
 /// speech + haptics, mirrors commands to the other device and exposes a snapshot for the UI.

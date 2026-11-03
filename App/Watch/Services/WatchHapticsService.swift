@@ -1,4 +1,4 @@
-import TrainingCore
+import RockyCore
 import WatchKit
 
 /// Distinct wrist haptics (PRD 8a): exercise start, last 3 s, rest, round end, workout end.

@@ -1,5 +1,5 @@
 import SwiftUI
-import TrainingCore
+import RockyCore
 
 /// PRD screen "Nastavení": training days, reminder time + escalation limit, intervals,
 /// voice (Czech system voice, rate, volume, tips), vibration, watch sound.

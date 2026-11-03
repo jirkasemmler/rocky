@@ -1,5 +1,5 @@
 import XCTest
-@testable import TrainingCore
+@testable import RockyCore
 
 final class ProgressionAdvisorTests: XCTestCase {
     /// Mon/Wed/Fri sessions for two weeks starting Mon 2 Nov 2026.

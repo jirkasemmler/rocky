@@ -1,5 +1,5 @@
 import XCTest
-@testable import TrainingCore
+@testable import RockyCore
 
 final class PersistenceAndSyncTests: XCTestCase {
     private func sampleData() -> TrainingData {
