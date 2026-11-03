@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Osobní trenér – prototyp</title>
+<style>
+:root{
+  --bg:#000;--card:#1c1c1e;--card2:#2c2c2e;--card3:#3a3a3c;--sep:#38383a;--txt:#fff;--mut:#8e8e93;--mut2:#636366;
+  --green:#30d158;--red:#ff453a;--orange:#ff9f0a;--blue:#0a84ff;--purple:#bf5af2;--teal:#64d2ff;--yellow:#ffd60a;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:radial-gradient(1200px 800px at 30% 15%,#1b1f2e,#06070b 70%);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,textarea,select{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- stage ---------- */
+.stage{min-height:100vh;display:flex;align-items:center;justify-content:center;gap:56px;padding:20px}
+.phone{position:relative;width:414px;height:868px;border-radius:64px;background:#000;border:12px solid #1b1b1e;
+  box-shadow:0 0 0 2px #3c3c40,0 40px 90px rgba(0,0,0,.65);overflow:hidden;flex:none}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:122px;height:35px;background:#000;border-radius:20px;z-index:60}
+.statusbar{position:absolute;top:0;left:0;right:0;height:50px;display:flex;justify-content:space-between;align-items:center;padding:4px 34px 0;font-weight:600;font-size:15px;z-index:55}
+.statusbar .icons{display:flex;gap:6px;align-items:center;font-size:12px}
+.batt{width:24px;height:12px;border:1.5px solid #fff;border-radius:4px;position:relative;opacity:.9}
+.batt::after{content:"";position:absolute;inset:1.5px;right:5px;background:#fff;border-radius:1.5px}
+.app{position:absolute;top:50px;left:0;right:0;bottom:0;display:flex;flex-direction:column;background:#000}
+.screen{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 16px 28px;scrollbar-width:none}
+.screen::-webkit-scrollbar{display:none}
+.tabbar{display:flex;border-top:.5px solid var(--sep);background:rgba(22,22,24,.96);padding:7px 0 24px;flex:none}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;color:var(--mut)}
+.tab svg{width:25px;height:25px}
+.tab.on{color:var(--green)}
+
+.side{display:flex;flex-direction:column;align-items:center;gap:28px;width:300px}
+.watch-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.cap{font-size:12px;color:var(--mut);text-align:center}
+.mtoggle{display:none}
+
+/* ---------- generic ui ---------- */
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;padding:10px 2px 14px}
+.hdr .date{font-size:13px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.3px}
+.hdr h1{font-size:32px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:8px 0 12px;position:sticky;top:-6px;background:#000;z-index:5}
+.nav .back{color:var(--green);font-size:17px;display:flex;align-items:center;gap:4px;padding:4px 0}
+.nav .t{font-size:17px;font-weight:700}
+h3{font-size:13px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin:18px 4px 8px}
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mut{color:var(--mut)} .small{font-size:13px} .tiny{font-size:11.5px}
+.list{background:var(--card);border-radius:16px;overflow:hidden;margin-bottom:12px}
+.li{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:.5px solid var(--sep);min-height:48px}
+.li:last-child{border-bottom:0}
+.li .grow{flex:1;min-width:0}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px 16px;border-radius:14px;font-weight:700;font-size:17px;background:var(--card2);transition:transform .08s,opacity .2s}
+.btn:active{transform:scale(.97)}
+.btn.green{background:var(--green);color:#000}
+.btn.red{background:var(--red);color:#fff}
+.btn.orange{background:var(--orange);color:#000}
+.btn.ghost{background:transparent;color:var(--green);padding:10px}
+.btn.sm{padding:10px 12px;font-size:15px;border-radius:12px}
+.btns{display:flex;gap:10px;margin-top:12px}
+.btns .btn{flex:1}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700;background:var(--card2);white-space:nowrap}
+.pill.green{background:rgba(48,209,88,.16);color:var(--green)}
+.pill.orange{background:rgba(255,159,10,.18);color:var(--orange)}
+.seg{display:flex;background:var(--card2);border-radius:10px;padding:2px}
+.seg button{flex:1;padding:8px 4px;border-radius:8px;font-size:14px;font-weight:600;color:#ddd}
+.seg button.on{background:#636366;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.stepper{display:flex;align-items:center;gap:4px;background:var(--card2);border-radius:10px}
+.stepper button{width:38px;height:34px;font-size:20px;font-weight:500;color:var(--green)}
+.stepper span{min-width:58px;text-align:center;font-weight:600;font-size:15px}
+.sw{width:51px;height:31px;border-radius:99px;background:#39393d;position:relative;flex:none;transition:background .2s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.sw.on{background:var(--green)} .sw.on::after{transform:translateX(20px)}
+.chk{width:26px;height:26px;border-radius:50%;border:2px solid var(--mut2);display:flex;align-items:center;justify-content:center;flex:none;font-size:14px;font-weight:900;color:#000;transition:all .15s}
+.chk.on{background:var(--green);border-color:var(--green)}
+input[type=range]{width:100%;accent-color:var(--green)}
+textarea{width:100%;background:var(--card2);border:0;border-radius:12px;padding:12px;min-height:72px;resize:vertical;outline:none}
+select{background:var(--card2);border:0;border-radius:10px;padding:8px 10px;outline:none}
+
+/* banners */
+.banner{border-radius:18px;padding:14px 16px;margin-bottom:12px;display:flex;gap:12px;align-items:flex-start}
+.banner.red{background:linear-gradient(135deg,rgba(255,69,58,.28),rgba(255,69,58,.12));border:1px solid rgba(255,69,58,.45)}
+.banner.orange{background:rgba(255,159,10,.14);border:1px solid rgba(255,159,10,.35)}
+.banner.blue{background:rgba(10,132,255,.14);border:1px solid rgba(10,132,255,.35)}
+.banner .ic{font-size:22px;line-height:1}
+.banner b{display:block;font-size:16px;margin-bottom:2px}
+
+/* today */
+.today{background:linear-gradient(150deg,#1f3a2a,#13251b 60%,#101a14);border:1px solid rgba(48,209,88,.25)}
+.today.catch{background:linear-gradient(150deg,#3d1f1c,#2a1513 60%,#1a0f0e);border:1px solid rgba(255,69,58,.35)}
+.today .lbl{font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--green)}
+.today.catch .lbl{color:var(--red)}
+.today .ttl{font-size:30px;font-weight:800;margin:2px 0 6px;letter-spacing:-.5px}
+.today .exs{font-size:14px;color:#c7c7cc;line-height:1.45}
+.big-start{font-size:19px;padding:17px}
+
+/* week */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0;border-radius:12px}
+.wd.today{background:var(--card2)}
+.wd .dn{font-size:11px;color:var(--mut);font-weight:600}
+.wd .dd{font-size:11px;color:var(--mut2)}
+.dot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;border:2px dashed #48484a;color:var(--mut)}
+.dot.slot{border-style:solid;border-color:#5a5a5e;color:#ddd}
+.dot.done{background:var(--green);border-color:var(--green);color:#000}
+.dot.missed{background:rgba(255,69,58,.2);border:2px solid var(--red);color:var(--red)}
+.dot.caught{background:rgba(255,159,10,.18);border:2px solid var(--orange);color:var(--orange)}
+.dot.excused{background:#2c2c2e;border:2px solid #48484a;color:var(--mut)}
+.dot.due{border:2px solid var(--orange);color:var(--orange);box-shadow:0 0 0 3px rgba(255,159,10,.2)}
+.dot.none{border-color:transparent;color:#3a3a3c}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:11px;color:var(--mut)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+
+/* exercises */
+.exn{width:30px;height:30px;border-radius:9px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex:none}
+.exname{font-weight:600;font-size:16px}
+.extip{font-size:12.5px;color:var(--mut);margin-top:2px;line-height:1.35}
+
+/* run */
+.run{position:absolute;inset:0;display:flex;flex-direction:column;background:#000;transition:background .4s}
+.runtop{display:flex;align-items:center;justify-content:space-between;padding:6px 14px 6px}
+.iconbtn{width:40px;height:40px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+.iconbtn svg{width:20px;height:20px}
+.phase-pill{display:inline-block;padding:6px 14px;border-radius:99px;font-weight:800;font-size:13px;letter-spacing:.8px;text-transform:uppercase}
+.run-name{font-size:30px;font-weight:800;text-align:center;line-height:1.12;letter-spacing:-.4px;margin-top:10px;min-height:68px;display:flex;align-items:center;justify-content:center;padding:0 6px}
+.run-sub{text-align:center;color:#c7c7cc;font-size:15px;margin-top:4px;min-height:20px}
+.ringwrap{position:relative;width:250px;height:250px;margin:14px auto 6px}
+.ringwrap svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ringwrap .t{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.bigtime{font-size:92px;font-weight:700;letter-spacing:-3px;line-height:1;font-variant-numeric:tabular-nums}
+.ringwrap .paused-lbl{font-size:14px;font-weight:800;letter-spacing:1px;color:var(--yellow);margin-top:4px;min-height:18px}
+.run-meta{text-align:center;font-size:17px;font-weight:700}
+.run-next{text-align:center;color:var(--mut);font-size:15px;margin-top:4px}
+.run-next b{color:#fff}
+.caption{margin:12px auto 0;max-width:330px;text-align:center;font-size:13px;color:var(--teal);min-height:18px;opacity:.95}
+.ctrls{display:flex;align-items:center;justify-content:center;gap:28px;margin:16px 0 8px}
+.cbtn{width:66px;height:66px;border-radius:50%;background:var(--card2);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#ddd;gap:2px}
+.cbtn svg{width:24px;height:24px}
+.cbtn.main{width:92px;height:92px;background:var(--yellow);color:#000;font-size:11px}
+.cbtn.main svg{width:36px;height:36px}
+.cbtn.main.resume{background:var(--green)}
+.progress{height:4px;background:#2c2c2e;border-radius:4px;margin:0 16px;overflow:hidden;flex:none}
+.progress i{display:block;height:100%;background:var(--green);width:0;transition:width .3s linear}
+.cgrid{display:grid;grid-template-columns:1fr repeat(var(--r),34px);gap:6px;align-items:center}
+.cgrid .nm{font-size:13.5px;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cgrid .hd{font-size:11px;color:var(--mut);text-align:center;font-weight:700}
+.cdot{width:30px;height:30px;border-radius:50%;border:2px solid #48484a;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#000;margin:auto}
+.cdot.on{background:var(--green);border-color:var(--green)}
+.cdot.skip{border-color:var(--orange);color:var(--orange)}
+.cdot.cur{box-shadow:0 0 0 3px rgba(48,209,88,.45)}
+
+/* summary */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border-radius:16px;padding:12px 14px}
+.list .stat{background:var(--card2)}
+.stat .k{font-size:12px;color:var(--mut);font-weight:600}
+.stat .v{font-size:24px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .d{font-size:12px;margin-top:1px}
+.rate{display:flex;gap:8px}
+.rate button{flex:1;height:54px;border-radius:14px;background:var(--card2);font-size:22px;font-weight:800}
+.rate button.on{background:var(--green);color:#000}
+.rlbl{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:6px}
+table.t{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+table.t th{color:var(--mut);font-weight:600;text-align:right;padding:6px 4px;font-size:11.5px}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t td{padding:7px 4px;border-top:.5px solid var(--sep);text-align:right}
+.ok{color:var(--green)} .warn{color:var(--orange)}
+.bars{display:flex;align-items:flex-end;gap:8px;height:96px;margin-top:8px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}
+.bar i{display:block;width:100%;max-width:30px;border-radius:6px 6px 3px 3px;background:var(--green);min-height:3px}
+.bar i.empty{background:#2c2c2e}
+.bar span{font-size:10.5px;color:var(--mut)}
+.bar em{font-style:normal;font-size:10px;color:#ccc}
+.rec{border-left:3px solid var(--green);padding:10px 12px;background:var(--card2);border-radius:10px;margin-top:8px;font-size:14px;line-height:1.4}
+.rec.warn{border-color:var(--orange);color:#fff}
+
+/* sheet & toasts */
+.sheet-bg{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:80;display:flex;align-items:flex-end;animation:fade .2s}
+.sheet{width:100%;background:#1c1c1e;border-radius:22px 22px 0 0;padding:10px 16px 30px;animation:up .25s}
+.sheet .grab{width:38px;height:5px;border-radius:3px;background:#48484a;margin:0 auto 12px}
+.sheet h4{font-size:19px;font-weight:800;margin-bottom:6px}
+.sheet p{color:#c7c7cc;font-size:14px;margin-bottom:12px;line-height:1.4}
+.sheet .btn{margin-top:8px}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.toasts{position:absolute;top:8px;left:10px;right:10px;z-index:90;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{pointer-events:auto;background:rgba(44,44,48,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:20px;padding:11px 13px;display:flex;gap:10px;align-items:flex-start;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:drop .35s cubic-bezier(.2,.9,.3,1.2)}
+.toast .ai{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#34c759,#0a8f3c);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+.toast .tt{font-size:13px;font-weight:700;display:flex;justify-content:space-between;gap:8px}
+.toast .tt span{color:var(--mut);font-weight:500}
+.toast .tb{font-size:13.5px;line-height:1.3;margin-top:1px}
+.toast.out{animation:rise .3s forwards}
+@keyframes drop{from{transform:translateY(-120%);opacity:0}to{transform:none;opacity:1}}
+@keyframes rise{to{transform:translateY(-120%);opacity:0}}
+
+/* ---------- watch ---------- */
+.watch{position:relative;width:220px;height:264px;border-radius:58px;background:#111;border:10px solid #2b2b2f;box-shadow:0 0 0 2px #46464a,0 25px 60px rgba(0,0,0,.6);flex:none}
+.watch::before{content:"";position:absolute;right:-19px;top:58px;width:9px;height:44px;border-radius:4px;background:linear-gradient(90deg,#3a3a3e,#59595e)}
+.watch::after{content:"";position:absolute;right:-15px;top:120px;width:5px;height:40px;border-radius:3px;background:#3a3a3e}
+.wscreen{position:absolute;inset:0;border-radius:48px;background:#000;overflow:hidden;padding:12px 14px 12px;display:flex;flex-direction:column}
+.wtop{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;padding:0 6px;min-height:16px}
+.wclock{color:#fff}
+.wname{font-size:15px;font-weight:700;text-align:center;line-height:1.15;margin-top:3px;min-height:35px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.wring{position:relative;width:98px;height:98px;margin:2px auto 0;flex:none}
+.wring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.wring .t{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.wnext{font-size:10.5px;color:var(--mut);text-align:center;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wbtns{display:flex;justify-content:space-between;margin-top:auto;padding:0 4px}
+.wb{width:42px;height:42px;border-radius:50%;background:#2c2c2e;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800}
+.wb svg{width:18px;height:18px}
+.wb.y{background:var(--yellow);color:#000}
+.wb.g,.wb.on{background:var(--green);color:#000}
+.wstart{margin-top:auto;background:var(--green);color:#000;border-radius:99px;padding:11px;font-weight:800;font-size:15px;text-align:center}
+.wstart.red{background:var(--red);color:#fff}
+.hap{position:absolute;inset:0;border-radius:48px;pointer-events:none;opacity:0;box-shadow:inset 0 0 0 4px var(--hc,#30d158),inset 0 0 30px var(--hc,#30d158)}
+.hap-lbl{position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--hc,#30d158);color:#000;opacity:0;white-space:nowrap;pointer-events:none}
+.watch.pulse{animation:buzz .45s}
+.watch.pulse .hap{animation:hapf .7s}
+.watch.pulse .hap-lbl{animation:hapl 1.3s}
+@keyframes buzz{0%,100%{transform:none}15%{transform:translateX(-2px) rotate(-.4deg)}30%{transform:translateX(2px) rotate(.4deg)}45%{transform:translateX(-2px)}60%{transform:translateX(2px)}75%{transform:translateX(-1px)}}
+@keyframes hapf{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+@keyframes hapl{0%{opacity:0}10%,75%{opacity:1}100%{opacity:0}}
+.wtoast{position:absolute;left:8px;right:8px;top:10px;background:#2c2c2e;border-radius:16px;padding:8px 10px;font-size:11.5px;line-height:1.25;z-index:5;animation:drop .3s}
+.wtoast b{color:var(--green);display:block;font-size:10.5px}
+
+/* demo panel */
+.demo{width:300px;background:rgba(28,28,30,.92);border:1px solid #2c2c2e;border-radius:20px;padding:14px}
+.demo h5{font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.demo .btn{font-size:14px;padding:10px 12px;margin-top:7px;border-radius:11px;justify-content:flex-start;text-align:left}
+.demo .state{font-size:12px;color:var(--mut);line-height:1.5;margin-top:10px;border-top:.5px solid var(--sep);padding-top:8px}
+.demo .state b{color:#ddd;font-weight:600}
+.mclose{display:none;margin-top:4px}
+
+/* ---------- mobile ---------- */
+@media (max-width:640px){
+  body{overflow:auto}
+  .stage{display:block;padding:0;min-height:0}
+  .phone{width:100vw;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}
+  .island,.statusbar{display:none}
+  .app{top:env(safe-area-inset-top,0px)}
+  .tabbar{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+  .side{display:none;position:fixed;inset:0;width:auto;z-index:300;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);justify-content:center;padding:20px;overflow:auto}
+  body.m-watch .side,body.m-demo .side{display:flex}
+  body.m-watch .demo{display:none}
+  body.m-demo .watch-wrap{display:none}
+  body.m-demo .demo{display:block}
+  .demo .mclose{display:flex}
+  .mtoggle{display:flex;position:fixed;right:10px;bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:310;gap:6px;flex-direction:column}
+  body.running .mtoggle{bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+  .mtoggle button{width:44px;height:44px;border-radius:50%;opacity:.85;background:rgba(58,58,60,.92);font-size:18px;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+  .mclose{display:flex}
+  .bigtime{font-size:88px}
+}
+@media (max-width:640px) and (max-height:700px){ .ringwrap{width:210px;height:210px}.bigtime{font-size:74px}.run-name{min-height:56px;font-size:26px} }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="phone" id="phone">
+    <div class="island"></div>
+    <div class="statusbar"><span class="js-clock num">--:--</span><span class="icons">●●●● 5G <span class="batt"></span></span></div>
+    <div class="app" id="app"></div>
+    <div class="toasts" id="toasts"></div>
+  </div>
+  <div class="side" id="side">
+    <div class="watch-wrap">
+      <div class="watch" id="watch">
+        <div class="wscreen" id="wscreen"></div>
+        <div class="hap"></div>
+        <div class="hap-lbl" id="haplbl">haptika</div>
+      </div>
+      <div class="cap" style="margin-top:28px">Apple Watch · synchronizováno s iPhonem</div>
+      <button class="btn sm mclose" data-a="mclose">Zavřít</button>
+    </div>
+    <div class="demo" id="demo"></div>
+  </div>
+</div>
+<div class="mtoggle">
+  <button data-a="mwatch" title="Zobrazit hodinky">⌚</button>
+  <button data-a="mdemo" title="Demo panel">🧪</button>
+</div>
+<script>
+'use strict';
+/* =====================================================================
+   Osobní trenér – interaktivní prototyp (PRD v1.1)
+   Jeden soubor, bez závislostí. Stav v JS, persistováno v localStorage.
+   ===================================================================== */
+
+/* ---------- data ---------- */
+const ROT = ['A','B','C'];
+const WORKOUTS = {
+  A: { name:'Trénink A', items:[
+    { id:'squat',  name:'Dřepy s činkami', reps:'12–15 opakování', type:'reps', weighted:true,  tip:'Váha na patách, kolena ve směru špiček, záda rovná.' },
+    { id:'pushup', name:'Kliky', reps:'8–12 opakování', type:'reps', weighted:false, tip:'Tělo v jedné linii, lokty asi 45 stupňů od těla.' },
+    { id:'row',    name:'Veslování s činkou v předklonu', reps:'12 na stranu', type:'reps', side:true, weighted:true, tip:'Rovná záda, táhni loket podél těla k boku.' },
+    { id:'plank',  name:'Plank', reps:'30–45 s výdrž', type:'time', weighted:false, tip:'Zpevni břicho a hýždě, nepropadej v bedrech.' } ]},
+  B: { name:'Trénink B', items:[
+    { id:'lunge',  name:'Výpady vzad s činkami', reps:'10 na nohu', type:'reps', side:true, weighted:true, tip:'Krok vzad, přední koleno nad kotníkem, trup vzpřímený.' },
+    { id:'press',  name:'Tlaky nad hlavu', reps:'10–12 opakování', type:'reps', weighted:true, tip:'Zpevni břicho, nezakláněj se, tlač přímo nad hlavu.' },
+    { id:'bridge', name:'Glute bridge s činkou', reps:'15 opakování', type:'reps', weighted:true, tip:'Činku na boky, nahoře zatni hýždě a vydrž sekundu.' },
+    { id:'deadbug',name:'Dead bug', reps:'10 na stranu', type:'reps', side:true, weighted:false, tip:'Bedra tlač do podložky, pohyb pomalu a pod kontrolou.' } ]},
+  C: { name:'Trénink C', items:[
+    { id:'bulg',   name:'Bulharský dřep', reps:'8–10 na nohu', type:'reps', side:true, weighted:true, tip:'Zadní noha na židli, váha na patě přední nohy.' },
+    { id:'cpush',  name:'Kliky s užším postavením rukou', reps:'8–12 opakování', type:'reps', weighted:false, tip:'Dlaně pod rameny, lokty jdou podél těla.' },
+    { id:'rdl',    name:'Rumunský mrtvý tah', reps:'12–15 opakování', type:'reps', weighted:true, tip:'Boky dozadu, činky blízko nohou, záda rovná.' },
+    { id:'splank', name:'Boční plank', reps:'20–30 s na stranu', type:'time', side:true, weighted:false, tip:'Boky nahoru, tělo v jedné linii. V půlce vyměň stranu.' } ]}
+};
+const PH = {
+  warmup:    { label:'Rozcvička',       color:'#ff9f0a', bg:'#1f1406' },
+  work:      { label:'Cvičení',         color:'#30d158', bg:'#06170c' },
+  rest:      { label:'Pauza',           color:'#0a84ff', bg:'#05101f' },
+  roundRest: { label:'Pauza mezi koly', color:'#bf5af2', bg:'#160a1d' },
+  stretch:   { label:'Protažení',       color:'#64d2ff', bg:'#06161c' }
+};
+const HAPTIC = {
+  start:     { label:'haptika: start',       color:'#30d158', vib:[220] },
+  countdown: { label:'haptika: odpočet',     color:'#ffd60a', vib:[60] },
+  rest:      { label:'haptika: pauza',       color:'#0a84ff', vib:[90,70,90] },
+  round:     { label:'haptika: konec kola',  color:'#bf5af2', vib:[300,120,300] },
+  done:      { label:'haptika: konec',       color:'#30d158', vib:[400,150,400,150,400] },
+  side:      { label:'haptika: strana',      color:'#64d2ff', vib:[120,60,120] },
+  pause:     { label:'haptika: pozastaveno', color:'#ffd60a', vib:[150] },
+  tick:      { label:'haptika: ✓',           color:'#30d158', vib:[40] },
+  remind:    { label:'haptika: připomínka',  color:'#ff453a', vib:[200,100,200,100,200] }
+};
+const BEFORE = [ ['voda','Voda'], ['cinky','Činky 2 / 5 kg'], ['podlozka','Podložka'], ['rozcvicka','Rozcvička hotová'] ];
+const BOUNDS = { work:[10,120,5], rest:[0,120,5], roundRest:[0,300,15], rounds:[1,6,1], warmup:[0,600,30], stretch:[0,600,30] };
+const DAYS_S = ['Ne','Po','Út','St','Čt','Pá','So'];
+const DAYS_L = ['neděle','pondělí','úterý','středa','čtvrtek','pátek','sobota'];
+const MONTHS = ['ledna','února','března','dubna','května','června','července','srpna','září','října','listopadu','prosince'];
+const REASONS = { nemoc:'Nemoc', zraneni:'Zranění', cestovani:'Cestování' };
+const RATE_LBL = ['','velmi lehké','lehké','přiměřené','těžké','maximum'];
+const STORE_KEY = 'osobni-trener.v1';
+
+/* ---------- utils ---------- */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const key = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const dateOf = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d, 12); };
+const addDays = (k,n) => { const d = dateOf(k); d.setDate(d.getDate()+n); return key(d); };
+const diffDays = (a,b) => Math.round((dateOf(b) - dateOf(a)) / 864e5);
+const fmtShort = k => { const d = dateOf(k); return `${DAYS_S[d.getDay()]} ${d.getDate()}. ${d.getMonth()+1}.`; };
+const fmtLong = k => { const d = dateOf(k); return `${DAYS_L[d.getDay()]} ${d.getDate()}. ${MONTHS[d.getMonth()]}`; };
+const fmtMS = s => { s = Math.max(0, Math.round(s)); return `${Math.floor(s/60)}:${pad(s%60)}`; };
+const fmtDelta = s => (s >= 0 ? '+' : '−') + fmtMS(Math.abs(s));
+const fmtTimer = ms => { const s = Math.max(0, Math.ceil(ms/1000 - 1e-6)); return s >= 60 ? fmtMS(s) : String(s); };
+const mean = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0;
+const plural = (n,a,b,c) => n === 1 ? a : (n >= 2 && n <= 4 ? b : c);
+const clamp = (v,lo,hi) => Math.min(hi, Math.max(lo, v));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+/* ---------- state ---------- */
+function defaults(){
+  return {
+    v:1,
+    settings:{ work:40, rest:20, roundRest:90, rounds:3, warmup:180, stretch:120, voice:true, tips:true, volume:0.9,
+               vibrate:true, fast:false, days:[1,3,5], hour:19, weight:2 },
+    dayOffset:0, rotIdx:0, log:{}, debt:[], postponed:null, lightReturn:false, lastEval:null,
+    sessions:[], before:{}, beforeDate:null, run:null, pending:null, draft:null
+  };
+}
+let storageOk = true;
+function load(){
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) { const s = JSON.parse(raw); if (s && s.v === 1) { const d = defaults(); return Object.assign(d, s, { settings:Object.assign(d.settings, s.settings) }); } }
+  } catch(e) { storageOk = false; }
+  return defaults();
+}
+let S = load();
+function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch(e) { storageOk = false; } }
+
+const ui = { screen:'home', sheet:null, caption:'', openSession:null };
+
+const today = () => { const d = new Date(); d.setHours(12,0,0,0); d.setDate(d.getDate() + S.dayOffset); return key(d); };
+const isSlot = k => S.settings.days.includes(dateOf(k).getDay());
+const doneOn = k => S.sessions.find(s => s.date === k && s.completed);
+const speed = () => S.settings.fast ? 5 : 1;
+
+/* ---------- plan, debt & rotation ---------- */
+// Projde dny od posledního vyhodnocení do včerejška; nesplněný slot = zameškáno = dluh.
+function evaluateDays(){
+  const t = today();
+  if (!S.lastEval) S.lastEval = addDays(t, -1);
+  let d = addDays(S.lastEval, 1), changed = 0;
+  while (d < t) {
+    const st = S.log[d] && S.log[d].status;
+    if (isSlot(d) && !doneOn(d) && st !== 'excused' && st !== 'missed') {
+      S.log[d] = { status:'missed' };
+      S.debt.push({ date:d });
+      changed++;
+    }
+    d = addDays(d, 1);
+  }
+  if (addDays(t,-1) > S.lastEval) S.lastEval = addDays(t, -1);
+  if (S.postponed && S.postponed.date !== t) S.postponed = null;
+  if (S.beforeDate !== t) { S.before = {}; S.beforeDate = t; }
+  relabelDebt();
+  return changed;
+}
+// Rotace A/B/C se při vynechání neposouvá – dluh dostane tréninky, které jsou v rotaci na řadě.
+function relabelDebt(){
+  S.debt.sort((a,b) => a.date < b.date ? -1 : 1);
+  S.debt.forEach((d,i) => d.workoutId = ROT[(S.rotIdx + i) % 3]);
+}
+function debtInfo(){
+  const t = today();
+  const n = S.debt.length;
+  const age = n ? diffDays(S.debt[0].date, t) : 0;
+  const postponed = !!(S.postponed && S.postponed.date === t);
+  return { n, age, big: n > 2 || age > 2, postponed, forced: n > 0 && !postponed && !doneOn(t) };
+}
+function todayPlan(){
+  const t = today(), done = doneOn(t);
+  if (done) return { done, wid:done.workoutId };
+  const di = debtInfo();
+  if (di.n) return { wid:S.debt[0].workoutId, catchup:true, big:di.big, slot:isSlot(t) };
+  return { wid:ROT[S.rotIdx % 3], slot:isSlot(t) };
+}
+// Spotřebuje dnešek trénink z rotace? (ne, pokud je hotovo nebo je volný den bez dluhu)
+const todayConsumes = t => (!doneOn(t) && (isSlot(t) || S.debt.length > 0)) ? 1 : 0;
+function upcomingSlots(n){
+  const t = today(), out = [];
+  let q = S.rotIdx + todayConsumes(t);
+  let d = addDays(t, 1);
+  for (let i = 0; i < 21 && out.length < n; i++, d = addDays(d,1))
+    if (isSlot(d)) out.push({ date:d, wid:ROT[(q++) % 3] });
+  return out;
+}
+function weekStart(k){ const d = dateOf(k); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return key(d); }
+function weekCount(ws){ return new Set(S.sessions.filter(s => s.completed && weekStart(s.date) === ws).map(s => s.date)).size; }
+function streak(){
+  const target = Math.max(1, S.settings.days.length);
+  let ws = weekStart(today()), n = 0;
+  if (weekCount(ws) >= target) n++;
+  ws = addDays(ws, -7);
+  while (weekCount(ws) >= target) { n++; ws = addDays(ws, -7); }
+  return n;
+}
+function makeDraft(opts = {}){
+  const p = todayPlan(), st = S.settings;
+  const shortened = !!opts.shortened;
+  let rounds = st.rounds, weight = st.weight;
+  if (S.lightReturn) { rounds = Math.min(2, rounds); weight = Math.min(2, weight); }
+  if (shortened) rounds = Math.min(2, rounds);
+  return { wid:p.wid, catchup:!!p.catchup, shortened, rounds, weight,
+           work:st.work, rest:st.rest, roundRest:st.roundRest, warmup:st.warmup, stretch:st.stretch };
+}
+// Stavový automat: rozcvička -> (cvik -> pauza)* -> pauza mezi koly -> ... -> protažení -> konec
+function buildPhases(c){
+  const items = WORKOUTS[c.wid].items, ph = [];
+  if (c.warmup > 0) ph.push({ type:'warmup', dur:c.warmup });
+  for (let r = 1; r <= c.rounds; r++) {
+    items.forEach((ex, i) => {
+      ph.push({ type:'work', dur:c.work, ex:i, round:r });
+      if (i < items.length - 1 && c.rest > 0) ph.push({ type:'rest', dur:c.rest, ex:i+1, round:r });
+    });
+    if (r < c.rounds && c.roundRest > 0) ph.push({ type:'roundRest', dur:c.roundRest, round:r });
+  }
+  if (c.stretch > 0) ph.push({ type:'stretch', dur:c.stretch });
+  return ph;
+}
+const plannedTotal = c => buildPhases(c).reduce((a,p) => a + p.dur, 0);
+
+/* ---------- speech & haptics ---------- */
+const tts = { ok: typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined', voice:null, czech:false };
+function pickVoice(){
+  if (!tts.ok) return;
+  try {
+    const vs = speechSynthesis.getVoices() || [];
+    tts.voice = vs.find(v => /^cs([-_]|$)/i.test(v.lang)) || null;
+    tts.czech = !!tts.voice;
+  } catch(e) {}
+}
+if (tts.ok) { pickVoice(); try { speechSynthesis.addEventListener('voiceschanged', pickVoice); } catch(e) {} }
+function say(text, { interrupt = false } = {}){
+  ui.caption = text;
+  $$('.js-caption').forEach(el => el.textContent = '🔊 „' + text + '“');
+  if (!S.settings.voice || !tts.ok) return;
+  try {
+    if (interrupt) speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'cs-CZ';
+    if (tts.voice) u.voice = tts.voice;
+    u.volume = clamp(S.settings.volume, 0, 1);
+    u.rate = S.settings.fast ? 1.35 : 1.05;
+    speechSynthesis.speak(u);
+  } catch(e) {}
+}
+let hapTimer = null;
+function haptic(kind){
+  const h = HAPTIC[kind]; if (!h) return;
+  if (S.settings.vibrate && navigator.vibrate) { try { navigator.vibrate(h.vib); } catch(e) {} }
+  const w = $('#watch'); if (!w) return;
+  w.style.setProperty('--hc', h.color);
+  $('#haplbl').textContent = h.label;
+  w.classList.remove('pulse'); void w.offsetWidth; w.classList.add('pulse');
+  clearTimeout(hapTimer); hapTimer = setTimeout(() => w.classList.remove('pulse'), 1350);
+}
+let wakeLock = null;
+async function wake(on){
+  try {
+    if (on && 'wakeLock' in navigator && !wakeLock && document.visibilityState === 'visible') {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch(e) { wakeLock = null; }
+}
+document.addEventListener('visibilitychange', () => { if (S.run && !S.run.paused) wake(true); });
+
+/* ---------- toasts (simulované notifikace) ---------- */
+function toast(body, { title = 'Osobní trenér', time = 'nyní', icon = '💪', ms = 4200, watch = false } = {}){
+  const box = $('#toasts'); if (!box) return;
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<div class="ai">${icon}</div><div style="flex:1;min-width:0"><div class="tt">${esc(title)}<span>${esc(time)}</span></div><div class="tb">${esc(body)}</div></div>`;
+  el.addEventListener('click', () => el.remove());
+  box.appendChild(el);
+  while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 320); }, ms);
+  if (watch) {
+    const ws = $('#wscreen'); const w = document.createElement('div');
+    w.className = 'wtoast'; w.innerHTML = `<b>${esc(time)} · Trenér</b>${esc(body)}`;
+    ws.appendChild(w); setTimeout(() => w.remove(), Math.min(ms, 3500));
+  }
+}
+
+/* ---------- running workout (state machine) ---------- */
+function startRun(draft, from = 'phone'){
+  const t = today();
+  if (doneOn(t)) { toast('Dnes už máš hotovo – maximálně 1 trénink denně.'); return; }
+  if (S.run || !draft) return;
+  const c = Object.assign({}, draft);
+  const phases = buildPhases(c);
+  S.run = { ...c, phases, idx:0, el:0, phPaused:0, totalMs:0, paused:false, records:[], date:t, fast:S.settings.fast,
+            startedAt:Date.now(), from,
+            check:{ before:Object.assign({}, S.before), ex:{}, skip:{}, rounds:{}, after:{} } };
+  S.draft = null; ui.screen = 'run'; ui.sheet = null;
+  pickVoice();
+  if (tts.ok && S.settings.voice) { try { speechSynthesis.cancel(); } catch(e) {} }
+  if (from === 'watch') toast(`Trénink ${c.wid} spuštěn z hodinek`, { icon:'⌚', ms:2500 });
+  wake(true);
+  enterPhase(null);
+  save();
+}
+const curPhase = () => S.run && S.run.phases[S.run.idx];
+const exOf = ph => WORKOUTS[S.run.wid].items[ph.ex];
+const nextWork = () => S.run.phases.slice(S.run.idx + 1).find(p => p.type === 'work');
+function enterPhase(prev){
+  const ph = curPhase(), nx = nextWork();
+  switch (ph.type) {
+    case 'warmup': {
+      const m = Math.max(1, Math.round(ph.dur/60));
+      say(`Začínáme. Rozcvička, ${m} ${plural(m,'minuta','minuty','minut')}. Krouž rameny a boky, lehké dřepy.`);
+      haptic('start'); break; }
+    case 'work': {
+      const ex = exOf(ph);
+      const fresh = !prev || prev.type === 'warmup' || prev.type === 'roundRest';
+      say((fresh ? (ph.round === 1 && ph.ex === 0 ? 'Start! ' : `Kolo ${ph.round}. Start! `) : 'Změna cviku. ') + ex.name + '.');
+      if (S.settings.tips) say(ex.tip);
+      haptic('start'); break; }
+    case 'rest':
+      say(ph.dur < 9 && nx ? `Pauza. Další cvik: ${exOf(nx).name}.` : 'Pauza.');
+      haptic('rest'); break;
+    case 'roundRest':
+      say(`Konec kola ${ph.round}. Pauza ${ph.dur} sekund.`); haptic('round'); break;
+    case 'stretch':
+      say('Konec kola. Poslední kolo hotové. Protažení.'); haptic('round'); break;
+  }
+  renderAll();
+}
+// Hlasové a haptické pokyny podle zbývajícího času (prev/rem v ms simulovaného času).
+function cues(ph, prev, rem){
+  const cross = t => prev > t && rem <= t;
+  const nx = S.run.phases[S.run.idx + 1];
+  if (nx && nx.type === 'work' && ph.dur >= 9 && cross(6500)) say(`Další cvik: ${exOf(nx).name}.`);
+  if (ph.type === 'work') { const ex = exOf(ph); if (ex.side && ex.type === 'time' && cross(ph.dur * 500)) { say('Vyměň stranu.'); haptic('side'); } }
+  if (ph.dur >= 4) [3,2,1].forEach(k => { if (cross(k * 1000)) { say(['jedna','dva','tři'][k-1], { interrupt:S.settings.fast }); haptic('countdown'); } });
+}
+function record(status){
+  const r = S.run, ph = curPhase();
+  r.records.push({ type:ph.type, ex:ph.ex, round:ph.round, planned:ph.dur, actual:(r.el + r.phPaused)/1000, paused:r.phPaused/1000, status });
+}
+function completePhase(status){
+  const r = S.run, ph = curPhase();
+  record(status);
+  if (ph.type === 'warmup' && status === 'ok') r.check.before.rozcvicka = true;
+  if (ph.type === 'work') {
+    const k = `${ph.round}-${ph.ex}`;
+    if (status === 'ok') { r.check.ex[k] = true; delete r.check.skip[k]; } else if (!r.check.ex[k]) r.check.skip[k] = true;
+    if (ph.ex === WORKOUTS[r.wid].items.length - 1) r.check.rounds[ph.round] = true;
+  }
+  if (ph.type === 'stretch' && status === 'ok') r.check.after.protazeni = true;
+  r.idx++; r.el = 0; r.phPaused = 0;
+  if (r.idx >= r.phases.length) { finishRun(true); return; }
+  enterPhase(ph);
+}
+function finishRun(completed){
+  const r = S.run; if (!r) return;
+  if (!completed) record('aborted');
+  const st = analyze(r.records, r.phases, r);
+  S.pending = { id:uid(), date:r.date, ts:Date.now(), workoutId:r.wid, rounds:r.rounds, weight:r.weight, catchup:r.catchup,
+                shortened:r.shortened, completed, fast:r.fast, cfg:{ work:r.work, rest:r.rest, roundRest:r.roundRest, warmup:r.warmup, stretch:r.stretch },
+                records:r.records, ...st,
+                checklist:{ before:r.check.before, during:{ ex:r.check.ex, skip:r.check.skip, rounds:r.check.rounds }, after:{ protazeni:!!r.check.after.protazeni, zapis:false } },
+                difficulty:0, note:'' };
+  S.run = null; ui.screen = 'summary'; ui.sheet = null;
+  wake(false);
+  if (completed) { say('Konec tréninku. Výborně!'); haptic('done'); }
+  else { say('Trénink ukončen.', { interrupt:true }); haptic('pause'); }
+  save(); renderAll();
+}
+function analyze(records, phases, cfg){
+  const rests = records.filter(x => x.type === 'rest' && x.status !== 'back');
+  const rrests = records.filter(x => x.type === 'roundRest' && x.status !== 'back');
+  return {
+    plannedTotal: phases.reduce((a,p) => a + p.dur, 0),
+    actualTotal: records.reduce((a,x) => a + x.actual, 0),
+    avgRest: rests.length ? mean(rests.map(x => x.actual)) : 0, plannedRest:cfg.rest,
+    avgRoundRest: rrests.length ? mean(rrests.map(x => x.actual)) : 0,
+    skipped: records.filter(x => x.status === 'skipped').length,
+    backs: records.filter(x => x.status === 'back').length,
+    pausedTotal: records.reduce((a,x) => a + x.paused, 0),
+    exTimes: records.filter(x => x.type === 'work' && x.status !== 'back').map(x => ({ ex:x.ex, round:x.round, actual:x.actual, planned:x.planned, status:x.status }))
+  };
+}
+function togglePause(){
+  const r = S.run; if (!r) return;
+  r.paused = !r.paused;
+  if (r.paused) { say('Pozastaveno.', { interrupt:true }); haptic('pause'); }
+  else { say('Pokračujeme.', { interrupt:true }); haptic('start'); wake(true); }
+  save(); renderAll();
+}
+function cancelSpeech(){ try { if (tts.ok) speechSynthesis.cancel(); } catch(e) {} }
+function skipPhase(){ if (!S.run) return; cancelSpeech(); completePhase('skipped'); save(); }
+// Zpět: po >3 s restart aktuálního intervalu, jinak návrat na předchozí.
+function backPhase(){
+  const r = S.run; if (!r) return;
+  record('back');
+  const restart = (r.el + r.phPaused) > 3000 || r.idx === 0;
+  if (!restart) r.idx--;
+  r.el = 0; r.phPaused = 0;
+  cancelSpeech();
+  enterPhase(restart ? null : (r.phases[r.idx - 1] || null));
+  save();
+}
+function tickCurrent(){
+  const r = S.run; if (!r) return;
+  let ph = curPhase();
+  if (ph.type !== 'work') ph = r.phases.slice(0, r.idx).reverse().find(p => p.type === 'work');
+  if (!ph) { toast('Zatím není co odškrtnout', { ms:1800 }); return; }
+  const k = `${ph.round}-${ph.ex}`;
+  r.check.ex[k] = !r.check.ex[k]; delete r.check.skip[k];
+  haptic('tick'); save(); renderAll();
+}
+
+// Časovač: delta podle performance.now() (přesné i při throttlingu na pozadí), ×5 v rychlém režimu.
+let lastT = performance.now(), lastSave = 0, lastClock = '';
+function tick(){
+  const now = performance.now();
+  let dt = (now - lastT) * speed(); lastT = now;
+  const clk = new Date(); const c = `${clk.getHours()}:${pad(clk.getMinutes())}`;
+  if (c !== lastClock) { lastClock = c; $$('.js-clock').forEach(el => el.textContent = c); }
+  const r = S.run; if (!r) return;
+  r.totalMs += dt;
+  if (r.paused) { r.phPaused += dt; updateTick(); return; }
+  let guard = 0;
+  while (dt > 0 && S.run && guard++ < 400) {
+    const ph = curPhase(), durMs = ph.dur * 1000;
+    const prevRem = durMs - S.run.el, take = Math.min(dt, prevRem);
+    S.run.el += take; dt -= take;
+    const rem = durMs - S.run.el;
+    cues(ph, prevRem, rem);
+    if (rem <= 0) completePhase('ok');
+  }
+  updateTick();
+  if (now - lastSave > 2000) { lastSave = now; save(); }
+}
+
+/* ---------- plan actions ---------- */
+function settleDebt(p){
+  const t = p.date, msgs = [];
+  S.log[t] = { status:'done', catchup:!!p.catchup };
+  if (S.debt.length) {
+    const di = debtInfo();
+    if (p.shortened || di.big) {
+      S.debt.forEach(d => { S.log[d.date] = Object.assign({ status:'missed' }, S.log[d.date], { caught:t }); });
+      S.debt = []; msgs.push('Dluh splacen celý ✓');
+    } else {
+      const d = S.debt.shift();
+      S.log[d.date] = Object.assign({ status:'missed' }, S.log[d.date], { caught:t });
+      msgs.push(S.debt.length ? `Dohnáno ✓ Zbývá dluh: ${S.debt.length}.` : 'Dluh splacen ✓ Připomínky zastaveny.');
+    }
+    remindTimers.forEach(clearTimeout); remindTimers = [];
+  }
+  S.rotIdx++; S.lightReturn = false; S.postponed = null;
+  relabelDebt();
+  return msgs;
+}
+function savePending(){
+  const p = S.pending; if (!p) return;
+  if (!p.difficulty && p.completed) { toast('Vyber náročnost 1–5', { ms:2000 }); return; }
+  p.checklist.after.zapis = !!p.difficulty;
+  const msgs = p.completed ? settleDebt(p) : [];
+  S.sessions.push(Object.assign({}, p));
+  S.pending = null; ui.screen = 'home';
+  save(); renderAll();
+  toast(p.completed ? `Uloženo: Trénink ${p.workoutId}. ${msgs.join(' ')}` : 'Uloženo jako nedokončený trénink (nepočítá se do plánu).', { icon:'✅' });
+}
+function postpone(reason){
+  const t = today();
+  if (reason === 'cestovani') {
+    S.postponed = { date:t, reason };
+    toast('Dohon odložen na zítra (cestování). Dluh zůstává.', { icon:'🧳' });
+  } else {
+    S.debt.forEach(d => { S.log[d.date] = Object.assign({}, S.log[d.date], { status:'excused', reason }); });
+    S.debt = []; S.lightReturn = true; S.postponed = null;
+    toast(`${REASONS[reason]}: dluh smazán, plán obnoven s lehčím návratem (2 kola, nižší váha).`, { icon:'🩹' });
+  }
+  remindTimers.forEach(clearTimeout); remindTimers = [];
+  ui.sheet = null; save(); renderAll();
+}
+// Eskalující připomínky: v nastavenou hodinu, +1 h, +2 h (nejpozději 22:30) – zrychleně jako bannery.
+let remindTimers = [];
+function runReminders(){
+  remindTimers.forEach(clearTimeout); remindTimers = [];
+  const t = today(), p = todayPlan(), di = debtInfo(), h = S.settings.hour;
+  if (p.done) { toast('Dnes splněno – žádné připomínky.', { icon:'✅' }); return; }
+  if (di.postponed) { toast('Dohon je dnes odložen (cestování) – připomínky vypnuty.', { icon:'🧳' }); return; }
+  let times = [h*60, h*60+60, h*60+120].filter(m => m <= 22*60+30);
+  if (!times.length) times = [22*60+30];
+  const fmtT = m => `${Math.floor(m/60)}:${pad(m%60)}`;
+  const gap = S.settings.fast ? 1300 : 2600, name = `Trénink ${p.wid}`;
+  let msgs;
+  if (di.forced) msgs = [`Zameškaný trénink – dohoň ho dnes: ${name}${di.big ? ' (stačí zkrácená verze)' : ''}.`,
+                         `Připomínka 2/3: dohon ${name} pořád čeká. Zabere cca ${Math.round(plannedTotal(makeDraft({ shortened:di.big }))/60)} min.`,
+                         `Poslední připomínka: dnes ještě stihneš ${name}. Odložit jde jen s důvodem.`];
+  else if (isSlot(t)) { msgs = [`Dnes máš ${name} – cca ${Math.round(plannedTotal(makeDraft())/60)} min. Jdeme na to?`]; times = times.slice(0,1); }
+  else { toast('Dnes je volno – připomínka se neposílá.', { icon:'😴' }); return; }
+  times.forEach((m, i) => {
+    if (!msgs[i]) return;
+    remindTimers.push(setTimeout(() => {
+      if (doneOn(today()) || S.run) return;
+      toast(msgs[i], { time:fmtT(m), icon:i ? '⏰' : '💪', ms:4800, watch:true });
+      haptic('remind');
+    }, i * gap));
+  });
+}
+function simulateMissed(){
+  const t = today();
+  let y = S.debt.length ? addDays(S.debt[0].date, -1) : addDays(t, -1);
+  if (y >= t) y = addDays(t, -1);
+  let g = 0;
+  while ((doneOn(y) || S.debt.some(d => d.date === y)) && g++ < 60) y = addDays(y, -1);
+  S.log[y] = { status:'missed', simulated:true };
+  S.debt.push({ date:y });
+  S.postponed = null;
+  relabelDebt(); save(); renderAll();
+  toast(`Simulace: ${fmtShort(y)} zameškáno → vzniká dluh (${S.debt.length}).`, { icon:'🧪', ms:3000 });
+}
+function nextDay(){
+  if (S.run) { toast('Nejdřív ukonči běžící trénink.'); return; }
+  remindTimers.forEach(clearTimeout); remindTimers = [];
+  S.dayOffset++;
+  const missed = evaluateDays();
+  ui.sheet = null; save(); renderAll();
+  toast(`Nový den: ${fmtLong(today())}${missed ? ` · zameškáno ${missed} → dluh` : ''}`, { icon:'📅', ms:3000 });
+  if (debtInfo().forced) remindTimers.push(setTimeout(() => {
+    if (!debtInfo().forced) return;
+    toast(`Zameškaný trénink – dohoň ho dnes: Trénink ${S.debt[0].workoutId}.`, { time:`${S.settings.hour}:00`, icon:'💪', watch:true });
+    haptic('remind');
+  }, 900));
+}
+function genHistory(){
+  const t = today(); let n = 0;
+  for (let i = 15; i >= 1; i--) {
+    const d = addDays(t, -i);
+    if (!isSlot(d) || doneOn(d)) continue;
+    const wid = ROT[S.rotIdx % 3];
+    const c = { wid, rounds:3, work:40, rest:20, roundRest:90, warmup:180, stretch:120, weight:2 };
+    const ph = buildPhases(c);
+    const recs = ph.map(p => ({ type:p.type, ex:p.ex, round:p.round, planned:p.dur, actual:p.dur + (p.type === 'rest' ? Math.round(Math.random()*6) : 0), paused:0, status:'ok' }));
+    S.sessions.push({ id:uid(), date:d, ts:dateOf(d).getTime() + 7*36e5, workoutId:wid, rounds:3, weight:2, catchup:false, shortened:false, completed:true, fast:false,
+      cfg:c, records:recs, ...analyze(recs, ph, c), difficulty:[2,2,1,2,3,2][n % 6], note:'Demo záznam',
+      checklist:{ before:{ voda:true, cinky:true, podlozka:true, rozcvicka:true }, during:{ ex:{}, skip:{}, rounds:{1:true,2:true,3:true} }, after:{ protazeni:true, zapis:true } } });
+    S.log[d] = { status:'done' };
+    S.debt = S.debt.filter(x => x.date !== d);
+    S.rotIdx++; n++;
+  }
+  S.sessions.sort((a,b) => a.ts - b.ts);
+  relabelDebt(); save(); renderAll();
+  toast(`Vygenerováno ${n} tréninků za poslední 2 týdny → v Historii je doporučení progrese.`, { icon:'🧪' });
+}
+function resetAll(){
+  remindTimers.forEach(clearTimeout); remindTimers = [];
+  try { localStorage.removeItem(STORE_KEY); } catch(e) {}
+  wake(false); cancelSpeech();
+  S = defaults(); evaluateDays(); ui.screen = 'home'; ui.sheet = null; ui.caption = ''; save(); renderAll();
+  toast('Data resetována.', { icon:'🧹', ms:2000 });
+}
+
+/* ---------- recommendations ---------- */
+function progression(){
+  const t = today();
+  const done = S.sessions.filter(s => s.completed && s.difficulty);
+  if (!done.length) return { ready:false, text:'Doporučení progrese se zobrazí po 2 týdnech tréninků. Zatím žádný záznam.' };
+  const first = done.reduce((a,s) => s.date < a ? s.date : a, done[0].date);
+  const span = diffDays(first, t);
+  if (span < 14) return { ready:false, text:`Doporučení progrese po 2 týdnech dat – zbývá ${14 - span} ${plural(14-span,'den','dny','dní')} (máš ${done.length} ${plural(done.length,'trénink','tréninky','tréninků')}).` };
+  const recent = done.filter(s => diffDays(s.date, t) <= 14);
+  if (recent.length < 2) return { ready:false, text:'Za poslední 2 týdny je málo tréninků pro doporučení. Pokračuj podle plánu.' };
+  const avg = mean(recent.map(s => s.difficulty));
+  const w = recent[recent.length-1].weight;
+  const per = ROT.map(id => { const a = recent.filter(s => s.workoutId === id); return a.length ? `${id}: Ø ${mean(a.map(s=>s.difficulty)).toFixed(1)}` : null; }).filter(Boolean).join(' · ');
+  let title, text, action = null;
+  if (avg <= 2.2) {
+    if (w === 2) { title = 'Přejdi z 2 na 5 kg'; text = 'Tréninky hodnotíš jako lehké – 15 opakování zvládáš snadno. Vezmi 5 kg u cviků s činkami.'; action = { k:'weight', v:5, label:'Nastavit 5 kg' }; }
+    else if (w === 0) { title = 'Přidej činky 2 kg'; text = 'Vlastní váha je pro tebe lehká. U dřepů, výpadů a tahů přidej 2 kg.'; action = { k:'weight', v:2, label:'Nastavit 2 kg' }; }
+    else { const v = Math.min(120, S.settings.work + 5); title = 'Přidej opakování'; text = 'S 5 kg je to lehké: přidej 2–3 opakování na cvik nebo prodluž cvičení o 5 s.'; action = { k:'work', v, label:`Cvičení ${v} s` }; }
+  } else if (avg <= 3) { title = 'Přidej opakování'; text = 'Zátěž je přiměřená až lehká. Přidej 1–2 opakování na sérii, váhu zatím nech.'; }
+  else if (avg <= 3.8) { title = 'Zpomal spouštění (3 s dolů)'; text = 'Náročnost sedí. Další krok bez změny váhy: pomalá excentrická fáze, 3 sekundy dolů.'; }
+  else { const v = Math.max(1, S.settings.rounds - 1); title = 'Drž současnou zátěž'; text = 'Tréninky jsou těžké. Zatím nepřidávej, soustřeď se na techniku; případně uber jedno kolo.'; action = { k:'rounds', v, label:`${v} ${plural(v,'kolo','kola','kol')}` }; }
+  return { ready:true, title, text, action, avg, per, n:recent.length };
+}
+function timingRecs(p){
+  const out = [];
+  const all = [...S.sessions.filter(s => s.completed).slice(-2), p].filter(s => s.plannedRest > 0 && s.avgRest > 0);
+  if (p.plannedRest > 0 && p.avgRest > p.plannedRest * 1.25) {
+    const persistent = all.filter(s => s.avgRest > s.plannedRest * 1.25).length >= 2;
+    const nr = clamp(Math.round(p.avgRest / 5) * 5, 0, 120);
+    out.push({ cls:'warn', text:`Pauzy trvají ${persistent ? 'trvale ' : ''}déle než plán (Ø ${Math.round(p.avgRest)} s vs. ${p.plannedRest} s). ${persistent ? 'Nabízím zkrácení tréninku na 2 kola, nebo sladit pauzu se skutečností.' : 'Pokud se to bude opakovat, nabídnu zkrácení.'}`,
+      actions: persistent ? [{ k:'rounds', v:2, label:'2 kola' }, { k:'rest', v:nr, label:`Pauza ${nr} s` }] : [] });
+  }
+  if (p.actualTotal > 30*60) { const v = Math.max(1, p.rounds - 1); out.push({ cls:'warn', text:`Trénink trval ${fmtMS(p.actualTotal)} – přes 30 min. Nabízím menší počet kol.`, actions:[{ k:'rounds', v, label:`${v} ${plural(v,'kolo','kola','kol')}` }] }); }
+  if (!out.length && p.completed) out.push({ cls:'', text:'Timing v pořádku – držíš se plánu. 👍', actions:[] });
+  return out;
+}
+
+/* ---------- rendering helpers ---------- */
+const I = {
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>',
+  pause:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/></svg>',
+  next:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5.5v13a1 1 0 0 0 1.6.8l8.7-6.5a1 1 0 0 0 0-1.6L5.6 4.7A1 1 0 0 0 4 5.5z"/><rect x="16" y="4.5" width="3.5" height="15" rx="1.2"/></svg>',
+  prev:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 5.5v13a1 1 0 0 1-1.6.8l-8.7-6.5a1 1 0 0 1 0-1.6l8.7-6.5A1 1 0 0 1 20 5.5z"/><rect x="4.5" y="4.5" width="3.5" height="15" rx="1.2"/></svg>',
+  home:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2 2.5 11h2.6v9h5.2v-6h3.4v6h5.2v-9h2.6z"/></svg>',
+  hist:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/><rect x="17" y="3" width="4" height="17" rx="1"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.8 1.7 1l.4 2.6h4l.4-2.6c.6-.2 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>'
+};
+const playIcon = I.play.replace('<svg', '<svg width="20" height="20"');
+const chev = '<svg width="12" height="20" viewBox="0 0 12 20"><path d="M10 2 2 10l8 8" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const sw = (on, a, v='') => `<button class="sw ${on ? 'on' : ''}" data-a="${a}" data-v="${v}" aria-pressed="${on}"></button>`;
+const stepper = (scope, k, val) => `<div class="stepper"><button data-a="step" data-scope="${scope}" data-k="${k}" data-d="-1">−</button><span class="num">${val}</span><button data-a="step" data-scope="${scope}" data-k="${k}" data-d="1">+</button></div>`;
+const weightLbl = w => w ? `${w} kg` : 'vlastní váha';
+const roundsLbl = n => `${n} ${plural(n,'kolo','kola','kol')}`;
+const ring = (size, stroke, color, cls) => { const r = (size - stroke)/2, c = 2*Math.PI*r;
+  return `<svg viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#2c2c2e" stroke-width="${stroke}"/><circle class="${cls}" cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="0" data-c="${c.toFixed(2)}"/></svg>`; };
+const intervalRows = (scope, o) => `
+  <div class="li"><div class="grow">Cvičení</div>${stepper(scope,'work',o.work + ' s')}</div>
+  <div class="li"><div class="grow">Pauza</div>${stepper(scope,'rest',o.rest + ' s')}</div>
+  <div class="li"><div class="grow">Pauza mezi koly</div>${stepper(scope,'roundRest',o.roundRest + ' s')}</div>
+  <div class="li"><div class="grow">Počet kol</div>${stepper(scope,'rounds',o.rounds)}</div>
+  <div class="li"><div class="grow">Rozcvička</div>${stepper(scope,'warmup',fmtMS(o.warmup))}</div>
+  <div class="li"><div class="grow">Protažení</div>${stepper(scope,'stretch',fmtMS(o.stretch))}</div>`;
+const weightSeg = (a, cur) => `<div class="seg">${[0,2,5].map(v => `<button class="${cur === v ? 'on' : ''}" data-a="${a}" data-k="weight" data-v="${v}">${v ? v + ' kg' : 'Vlastní váha'}</button>`).join('')}</div>`;
+
+function renderAll(){
+  renderPhone(); renderWatch(); renderDemo();
+  document.body.classList.toggle('running', !!S.run);
+  updateTick();
+}
+function renderPhone(){
+  const app = $('#app');
+  const old = app.querySelector('.screen'), st = old ? old.scrollTop : 0, prevScreen = app.dataset.screen;
+  let scr = S.run ? 'run' : S.pending ? 'summary' : ui.screen;
+  if (!['run','summary','home','preview','history','settings'].includes(scr)) scr = 'home';
+  if ((scr === 'run' && !S.run) || (scr === 'summary' && !S.pending) || (scr === 'preview' && !S.draft)) scr = 'home';
+  ui.screen = scr;
+  let html;
+  if (scr === 'run') html = viewRun();
+  else if (scr === 'summary') html = viewSummary();
+  else html = `<div class="screen">${scr === 'home' ? viewHome() : scr === 'preview' ? viewPreview() : scr === 'history' ? viewHistory() : viewSettings()}</div>${scr === 'preview' ? '' : tabbar(scr)}`;
+  app.innerHTML = html + viewSheet();
+  app.dataset.screen = scr;
+  const sc = app.querySelector('.screen'); if (sc && prevScreen === scr) sc.scrollTop = st;
+}
+function tabbar(cur){
+  const t = (id, ic, lbl) => `<button class="tab ${cur === id ? 'on' : ''}" data-a="go" data-v="${id}">${ic}<span>${lbl}</span></button>`;
+  return `<nav class="tabbar">${t('home', I.home, 'Domů')}${t('history', I.hist, 'Historie')}${t('settings', I.gear, 'Nastavení')}</nav>`;
+}
+
+/* ---------- views: home ---------- */
+function viewHome(){
+  const t = today(), p = todayPlan(), di = debtInfo(), w = WORKOUTS[p.wid], stk = streak();
+  let h = `<div class="hdr"><div><div class="date">${esc(fmtLong(t))}${S.dayOffset ? ' · simulace' : ''}</div><h1>Osobní trenér</h1></div>
+    <span class="pill orange" title="Týdny v řadě s 3/3 splněnými tréninky">🔥 ${stk} ${plural(stk,'týden','týdny','týdnů')}</span></div>`;
+  if (di.forced) {
+    const extra = di.n > 1 ? ` (+${di.n - 1} ${plural(di.n-1,'další','další','dalších')})` : '';
+    h += `<div class="banner red"><div class="ic">⚠️</div><div><b>Zameškaný trénink – dohoň ho dnes</b>
+      <div class="small">Zameškáno: ${esc(fmtShort(S.debt[0].date))} · Trénink ${S.debt[0].workoutId}${extra}. Dohon nahrazuje dnešní plán (max. 1 trénink denně), rotace A/B/C se posune.${di.big ? ' Dluh je delší než 2 dny – stačí zkrácená verze (2 kola) a dluh je splacen.' : ''}</div></div></div>`;
+  } else if (di.postponed) {
+    h += `<div class="banner orange"><div class="ic">🧳</div><div><b>Dohon odložen na zítra</b><div class="small">Důvod: cestování. Dluh ${di.n} ${plural(di.n,'trénink','tréninky','tréninků')} zůstává a zítra se znovu zobrazí jako první.</div></div></div>`;
+  }
+  if (S.lightReturn && !p.done) h += `<div class="banner blue"><div class="ic">🩹</div><div><b>Lehčí návrat</b><div class="small">Po nemoci/zranění: příští trénink 2 kola a max. 2 kg.</div></div></div>`;
+
+  if (p.done) {
+    const s = p.done, up = upcomingSlots(1)[0];
+    h += `<div class="card today"><div class="lbl">Dnešní trénink</div><div class="ttl">Hotovo ✓</div>
+      <div class="exs">${esc(WORKOUTS[s.workoutId].name)} · ${fmtMS(s.actualTotal)} · náročnost ${s.difficulty}/5 · ${esc(weightLbl(s.weight))}${s.catchup ? ' · dohon' : ''}</div>
+      <div class="small mut" style="margin-top:10px">Max. 1 trénink denně. ${up ? `Další: ${esc(fmtShort(up.date))} · Trénink ${up.wid}` : ''}</div></div>`;
+  } else {
+    const label = di.n ? (di.postponed ? 'Dnešní trénink · dohon odložen' : 'Dohon zameškaného tréninku') : (p.slot ? 'Dnešní trénink' : 'Dnešní trénink · volný den');
+    const dr = makeDraft({ shortened:di.big && di.n > 0 });
+    h += `<div class="card today ${di.forced ? 'catch' : ''}"><div class="lbl">${label}</div>
+      <div class="row"><div class="ttl">${esc(w.name)}</div><span class="pill">${Math.round(plannedTotal(dr)/60)} min</span></div>
+      <div class="exs">${w.items.map(x => esc(x.name)).join(' · ')}</div>
+      <div class="small mut" style="margin-top:8px">${roundsLbl(dr.rounds)} · ${dr.work}/${dr.rest} s · ${esc(weightLbl(dr.weight))}${!p.slot && !di.n ? ' · dnes není v plánu, ale cvičit můžeš' : ''}</div>`;
+    if (di.n && di.big) {
+      h += `<button class="btn green big-start" style="margin-top:14px" data-a="quick" data-v="short">${playIcon} Zkrácená verze (2 kola)</button>
+            <div class="btns"><button class="btn sm" data-a="quick" data-v="full">Plná verze</button><button class="btn sm" data-a="preview" data-v="short">Náhled</button></div>`;
+    } else {
+      h += `<button class="btn green big-start" style="margin-top:14px" data-a="quick">${playIcon} Dnešní trénink · ${p.wid}</button>
+            <div class="btns"><button class="btn sm" data-a="preview">Náhled a úpravy</button></div>`;
+    }
+    if (di.forced) h += `<button class="btn ghost" style="margin-top:4px;color:var(--mut);font-size:14px" data-a="postponeSheet">Odložit… (jen s důvodem)</button>`;
+    h += `</div>`;
+  }
+  h += viewWeek();
+  const up = upcomingSlots(3);
+  h += `<h3>Další tréninky</h3><div class="list">${up.map(u => `<div class="li"><div class="exn">${u.wid}</div><div class="grow"><div class="exname">${esc(WORKOUTS[u.wid].name)}</div><div class="extip">${esc(fmtLong(u.date))} · připomínka v ${S.settings.hour}:00</div></div></div>`).join('') || '<div class="li mut">Nejsou nastavené dny tréninku.</div>'}</div>`;
+  const last = S.sessions.filter(s => s.completed).slice(-1)[0];
+  if (last) h += `<h3>Poslední trénink</h3><div class="list"><button class="li" style="width:100%;text-align:left" data-a="go" data-v="history"><div class="exn">${last.workoutId}</div><div class="grow"><div class="exname">${esc(fmtShort(last.date))} · ${fmtMS(last.actualTotal)}</div><div class="extip">náročnost ${last.difficulty}/5 · ${esc(weightLbl(last.weight))}</div></div><span class="mut">›</span></button></div>`;
+  return h;
+}
+function viewWeek(){
+  const t = today(), ws = weekStart(t), target = S.settings.days.length, tp = todayPlan();
+  let q = S.rotIdx + todayConsumes(t);
+  const cells = [];
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(ws, i), dt = dateOf(d), slot = isSlot(d), lg = S.log[d] || {}, s = doneOn(d);
+    let cls = 'none', txt = '·';
+    if (s) { cls = 'done'; txt = s.workoutId; }
+    else if (lg.status === 'missed') { cls = lg.caught ? 'caught' : 'missed'; txt = lg.caught ? '↺' : '✕'; }
+    else if (lg.status === 'excused') { cls = 'excused'; txt = '–'; }
+    else if (d === t && (slot || S.debt.length)) { cls = 'due'; txt = tp.wid; }
+    else if (d > t && slot) { cls = 'slot'; txt = ROT[(q++) % 3]; }
+    else if (slot) { cls = 'slot'; txt = '?'; }
+    cells.push(`<div class="wd ${d === t ? 'today' : ''}"><span class="dn">${DAYS_S[dt.getDay()]}</span><div class="dot ${cls}">${txt}</div><span class="dd">${dt.getDate()}.</span></div>`);
+  }
+  const cnt = weekCount(ws);
+  return `<div class="card"><div class="row"><b>Týdenní plán</b><span class="pill ${cnt >= target ? 'green' : ''}">${cnt}/${target} splněno</span></div>
+    <div class="week">${cells.join('')}</div>
+    <div class="legend"><span><i style="background:var(--green)"></i>splněno</span><span><i style="background:var(--red)"></i>zameškáno</span><span><i style="background:var(--orange)"></i>dnes / dohnáno ↺</span><span><i style="background:#5a5a5e"></i>plán</span></div></div>`;
+}
+
+/* ---------- views: preview ---------- */
+function viewPreview(){
+  const d = S.draft, w = WORKOUTS[d.wid];
+  let h = `<div class="nav"><button class="back" data-a="go" data-v="home">${chev} Domů</button><span class="t">${esc(w.name)}</span><span style="width:60px"></span></div>`;
+  if (d.catchup) h += `<div class="banner red"><div class="ic">↺</div><div><b>Dohon zameškaného tréninku</b><div class="small">${d.shortened ? 'Zkrácená verze (2 kola) – po dokončení je celý dluh splacen.' : 'Po dokončení se dluh sníží a připomínky se zastaví.'}</div></div></div>`;
+  h += `<h3>Cviky · ${roundsLbl(d.rounds)}</h3><div class="list">${w.items.map((x,i) => `<div class="li"><div class="exn">${i+1}</div><div class="grow"><div class="exname">${esc(x.name)}</div><div class="extip"><b style="color:#ddd">${esc(x.reps)}</b>${x.weighted ? '' : ' · bez činek'} · ${esc(x.tip)}</div></div></div>`).join('')}</div>`;
+  h += `<h3>Váha činek</h3>${weightSeg('dweight', d.weight)}`;
+  h += `<h3>Intervaly</h3><div class="list">${intervalRows('draft', d)}<div class="li"><div class="grow mut">Plánovaná délka</div><b class="num">${fmtMS(plannedTotal(d))}</b></div></div>`;
+  h += `<h3>Checklist · před tréninkem</h3><div class="list">${BEFORE.map(([k,l]) => `<button class="li" style="width:100%;text-align:left" data-a="before" data-v="${k}"><span class="chk ${S.before[k] ? 'on' : ''}">${S.before[k] ? '✓' : ''}</span><span class="grow">${l}${k === 'rozcvicka' ? ' <span class="tiny mut">(odškrtne se samo po rozcvičce)</span>' : ''}</span></button>`).join('')}</div>`;
+  h += `<div style="position:sticky;bottom:-28px;padding:10px 0 20px;background:linear-gradient(transparent,#000 30%)"><button class="btn green big-start" data-a="start">${playIcon} Spustit trénink</button></div>`;
+  return h;
+}
+
+/* ---------- views: run ---------- */
+function phaseTitle(ph){
+  if (ph.type === 'work') return exOf(ph).name;
+  if (ph.type === 'warmup') return 'Rozcvička';
+  if (ph.type === 'rest') return 'Pauza';
+  if (ph.type === 'roundRest') return `Konec kola ${ph.round}`;
+  return 'Protažení';
+}
+function phaseSub(ph){
+  if (ph.type === 'work') { const ex = exOf(ph); return `${ex.reps}${ex.weighted && S.run.weight ? ' · ' + S.run.weight + ' kg' : ''}`; }
+  if (ph.type === 'warmup') return 'Krouž rameny a boky, lehké dřepy, poskoky';
+  if (ph.type === 'rest') return 'Vydýchej se';
+  if (ph.type === 'roundRest') return 'Napij se, připrav se na další kolo';
+  return 'Stehna, hýždě, ramena, záda';
+}
+function nextLabel(){
+  const ph = curPhase(), nx = nextWork();
+  if (nx) return (nx.round !== ph.round ? `Kolo ${nx.round}: ` : '') + exOf(nx).name;
+  return ph.type === 'stretch' ? 'Konec tréninku' : 'Protažení';
+}
+function roundLabel(){
+  const r = S.run, ph = curPhase(), n = WORKOUTS[r.wid].items.length;
+  if (ph.type === 'warmup') return `Před 1. kolem · ${roundsLbl(r.rounds)}`;
+  if (ph.type === 'stretch') return `Kola hotová · ${r.rounds}/${r.rounds}`;
+  if (ph.type === 'work') return `Kolo ${ph.round}/${r.rounds} · Cvik ${ph.ex+1}/${n}`;
+  return `Kolo ${ph.round}/${r.rounds}`;
+}
+function viewRun(){
+  const r = S.run, ph = curPhase(), m = PH[ph.type], w = WORKOUTS[r.wid];
+  const voiceNote = !tts.ok ? 'Hlas v tomto prohlížeči není – pokyny jako titulky' : !S.settings.voice ? 'Hlas vypnutý – pokyny jako titulky' : '';
+  return `<div class="run" style="background:radial-gradient(500px 420px at 50% 30%,${m.bg},#000 75%)">
+    <div class="runtop"><button class="iconbtn" data-a="endSheet" title="Ukončit">${I.x}</button>
+      <div style="text-align:center"><div style="font-weight:700;font-size:15px">${esc(w.name)}${r.catchup ? ' · dohon' : ''}</div><div class="tiny mut num">celkem <span class="js-total">0:00</span> / plán ${fmtMS(r.phases.reduce((a,p)=>a+p.dur,0))}${r.fast || S.settings.fast ? ' · <b style="color:var(--yellow)">5× rychle</b>' : ''}</div></div>
+      <button class="iconbtn" data-a="voice" title="Hlas zap/vyp">${S.settings.voice ? '🔊' : '🔇'}</button></div>
+    <div class="progress"><i class="js-prog"></i></div>
+    <div class="screen" style="padding-top:14px">
+      <div style="text-align:center"><span class="phase-pill" style="background:${m.color}22;color:${m.color}">${m.label}</span></div>
+      <div class="run-name">${esc(phaseTitle(ph))}</div>
+      <div class="run-sub">${esc(phaseSub(ph))}</div>
+      <div class="ringwrap">${ring(250, 14, r.paused ? '#ffd60a' : m.color, 'js-ring')}<div class="t"><div class="bigtime js-timer">0</div><div class="paused-lbl">${r.paused ? 'POZASTAVENO' : ''}</div></div></div>
+      <div class="run-meta">${esc(roundLabel())}</div>
+      <div class="run-next">Další: <b>${esc(nextLabel())}</b></div>
+      <div class="caption js-caption">${ui.caption ? '🔊 „' + esc(ui.caption) + '“' : ''}</div>
+      ${voiceNote ? `<div class="tiny mut" style="text-align:center">${voiceNote}</div>` : ''}
+      <div class="ctrls">
+        <button class="cbtn" data-a="back" title="Zpět (←)">${I.prev}<span>Zpět</span></button>
+        <button class="cbtn main ${r.paused ? 'resume' : ''}" data-a="pause" title="Pauza (mezerník)">${r.paused ? I.play : I.pause}<span>${r.paused ? 'Pokračovat' : 'Pauza'}</span></button>
+        <button class="cbtn" data-a="skip" title="Přeskočit (→)">${I.next}<span>Přeskočit</span></button>
+      </div>
+      <h3>Checklist · během tréninku</h3>
+      <div class="card">${duringGrid(r.check, r.rounds, w, ph, true)}</div>
+      <h3>Před tréninkem</h3>
+      <div class="list">${BEFORE.map(([k,l]) => `<button class="li" style="width:100%;text-align:left;min-height:42px;padding:8px 14px" data-a="rbefore" data-v="${k}"><span class="chk ${r.check.before[k] ? 'on' : ''}">${r.check.before[k] ? '✓' : ''}</span><span class="grow small">${l}</span></button>`).join('')}</div>
+    </div></div>`;
+}
+function duringGrid(check, rounds, w, ph, interactive){
+  let g = `<div class="cgrid" style="--r:${rounds}"><span></span>${Array.from({length:rounds}, (_,i) => `<span class="hd">${check.rounds[i+1] ? '✓ ' : ''}K${i+1}</span>`).join('')}`;
+  w.items.forEach((x, i) => {
+    g += `<span class="nm">${esc(x.name)}</span>`;
+    for (let r = 1; r <= rounds; r++) {
+      const k = `${r}-${i}`, on = check.ex[k], sk = check.skip[k], cur = ph && ph.type === 'work' && ph.round === r && ph.ex === i;
+      const cls = `cdot ${on ? 'on' : sk ? 'skip' : ''} ${cur ? 'cur' : ''}`, txt = on ? '✓' : sk ? '»' : '';
+      g += interactive ? `<button class="${cls}" data-a="cdot" data-v="${k}">${txt}</button>` : `<span class="${cls}">${txt}</span>`;
+    }
+  });
+  return g + `</div><div class="tiny mut" style="margin-top:8px">✓ auto po dokončení intervalu · » přeskočeno${interactive ? ' · klepnutím přepneš' : ''}</div>`;
+}
+function updateTick(){
+  const r = S.run; if (!r) return;
+  const ph = curPhase(); if (!ph) return;
+  const txt = fmtTimer(ph.dur * 1000 - r.el);
+  $$('.js-timer').forEach(el => { if (el.textContent !== txt) el.textContent = txt; });
+  const frac = clamp(r.el / (ph.dur * 1000), 0, 1);
+  $$('.js-ring').forEach(el => el.setAttribute('stroke-dashoffset', (parseFloat(el.dataset.c) * frac).toFixed(2)));
+  const tot = fmtMS(r.totalMs / 1000);
+  $$('.js-total').forEach(el => { if (el.textContent !== tot) el.textContent = tot; });
+  const planned = r.phases.reduce((a,p) => a + p.dur, 0), doneS = r.phases.slice(0, r.idx).reduce((a,p) => a + p.dur, 0) + r.el/1000;
+  $$('.js-prog').forEach(el => el.style.width = (100 * doneS / planned).toFixed(1) + '%');
+}
+
+/* ---------- views: summary ---------- */
+function weekBars(extra){
+  const t = today(), ws = weekStart(t), vals = [];
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(ws, i);
+    let mins = S.sessions.filter(s => s.date === d && s.completed).reduce((a,s) => a + s.actualTotal/60, 0);
+    if (extra && extra.completed && extra.date === d) mins += extra.actualTotal/60;
+    vals.push({ d, mins, slot:isSlot(d) });
+  }
+  const max = Math.max(30, ...vals.map(v => v.mins));
+  return `<div class="bars">${vals.map(v => `<div class="bar"><em>${v.mins ? Math.round(v.mins) : ''}</em><i class="${v.mins ? '' : 'empty'}" style="height:${v.mins ? Math.max(6, 70 * v.mins / max) : 3}px;${v.d === t && v.mins ? 'background:var(--orange)' : ''}"></i><span style="${v.slot ? 'color:#ddd;font-weight:700' : ''}">${DAYS_S[dateOf(v.d).getDay()]}</span></div>`).join('')}</div>`;
+}
+function exTable(p){
+  const w = WORKOUTS[p.workoutId];
+  let h = `<table class="t"><tr><th>Cvik</th>${Array.from({length:p.rounds}, (_,i) => `<th>K${i+1}</th>`).join('')}<th>plán</th></tr>`;
+  w.items.forEach((x, i) => {
+    h += `<tr><td>${esc(x.name)}</td>`;
+    for (let r = 1; r <= p.rounds; r++) {
+      const e = (p.exTimes || []).filter(z => z.ex === i && z.round === r).slice(-1)[0];
+      if (!e) { h += `<td class="mut">–</td>`; continue; }
+      const cls = e.status !== 'ok' || Math.abs(e.actual - e.planned) > 2 ? 'warn' : 'ok';
+      h += `<td class="${cls}">${Math.round(e.actual)} s${e.status === 'skipped' ? ' »' : ''}</td>`;
+    }
+    h += `<td class="mut">${p.cfg ? p.cfg.work + ' s' : ''}</td></tr>`;
+  });
+  return h + '</table><div class="tiny mut" style="margin-top:6px">» přeskočeno · oranžově odchylka od plánu (vč. pozastavení)</div>';
+}
+function statsGrid(p){
+  const d = p.actualTotal - p.plannedTotal;
+  return `<div class="stats">
+    <div class="stat"><div class="k">Plán</div><div class="v">${fmtMS(p.plannedTotal)}</div><div class="d mut">${roundsLbl(p.rounds)} · ${esc(weightLbl(p.weight))}</div></div>
+    <div class="stat"><div class="k">Skutečnost</div><div class="v">${fmtMS(p.actualTotal)}</div><div class="d ${Math.abs(d) < 10 ? 'ok' : 'warn'}">${fmtDelta(d)} oproti plánu</div></div>
+    <div class="stat"><div class="k">Ø pauza</div><div class="v">${p.avgRest ? Math.round(p.avgRest) + ' s' : '–'}</div><div class="d mut">plán ${p.plannedRest} s${p.avgRoundRest ? ` · mezi koly Ø ${Math.round(p.avgRoundRest)} s` : ''}</div></div>
+    <div class="stat"><div class="k">Odchylky</div><div class="v">${p.skipped}<span class="small mut"> přeskoč.</span></div><div class="d mut">pozastaveno ${fmtMS(p.pausedTotal)}${p.backs ? ` · zpět ${p.backs}×` : ''}</div></div></div>`;
+}
+function viewSummary(){
+  const p = S.pending, w = WORKOUTS[p.workoutId];
+  let h = `<div class="screen" style="padding-top:12px"><div style="text-align:center;padding:8px 0 14px">
+    <div style="font-size:52px">${p.completed ? '🎉' : '⏹️'}</div>
+    <h1 style="font-size:26px;font-weight:800">${esc(w.name)} ${p.completed ? 'dokončen' : 'ukončen předčasně'}</h1>
+    <div class="mut small">${esc(fmtLong(p.date))}${p.catchup ? ' · dohon' : ''}${p.shortened ? ' · zkrácená verze' : ''}${p.fast ? ' · rychlý režim (časy přepočteny na reálné)' : ''}</div></div>`;
+  h += statsGrid(p);
+  h += `<h3>Skutečné časy cviků</h3><div class="card">${exTable(p)}</div>`;
+  h += `<h3>Doporučení podle timingu</h3>${timingRecs(p).map(x => `<div class="rec ${x.cls}">${esc(x.text)}${x.actions.length ? `<div class="btns">${x.actions.map(a => `<button class="btn sm" data-a="setting" data-k="${a.k}" data-v="${a.v}">${esc(a.label)}</button>`).join('')}</div>` : ''}</div>`).join('')}`;
+  h += `<h3>Graf týdne (minuty)</h3><div class="card">${weekBars(p)}</div>`;
+  h += `<h3>Náročnost</h3><div class="card"><div class="rate">${[1,2,3,4,5].map(n => `<button class="${p.difficulty === n ? 'on' : ''}" data-a="rate" data-v="${n}">${n}</button>`).join('')}</div>
+    <div class="rlbl"><span>velmi lehké</span><span style="color:#fff">${p.difficulty ? esc(RATE_LBL[p.difficulty]) : ''}</span><span>maximum</span></div></div>`;
+  h += `<h3>Použitá váha</h3>${weightSeg('pweight', p.weight)}`;
+  h += `<h3>Poznámka</h3><textarea id="note" placeholder="Jak to šlo? Bolelo něco?">${esc(p.note)}</textarea>`;
+  h += `<h3>Checklist · po tréninku</h3><div class="list">
+    <button class="li" style="width:100%;text-align:left" data-a="after" data-v="protazeni"><span class="chk ${p.checklist.after.protazeni ? 'on' : ''}">${p.checklist.after.protazeni ? '✓' : ''}</span><span class="grow">Protažení <span class="tiny mut">(auto po protažení)</span></span></button>
+    <div class="li"><span class="chk ${p.difficulty ? 'on' : ''}">${p.difficulty ? '✓' : ''}</span><span class="grow">Zápis náročnosti <span class="tiny mut">(auto po výběru 1–5)</span></span></div></div>`;
+  h += `<h3>Checklist · během</h3><div class="card">${duringGrid(p.checklist.during, p.rounds, w, null, false)}</div>`;
+  h += `<button class="btn green big-start" style="margin-top:16px" data-a="savePending">Uložit do historie</button>
+    <button class="btn ghost" style="color:var(--red);margin-top:6px" data-a="discardSheet">Zahodit záznam</button></div>`;
+  return h;
+}
+
+/* ---------- views: history ---------- */
+function viewHistory(){
+  const pr = progression();
+  let h = `<div class="hdr"><div><div class="date">Záznamy a progrese</div><h1>Historie</h1></div></div>`;
+  h += `<div class="card" style="${pr.ready ? 'border:1px solid rgba(48,209,88,.35)' : ''}"><div class="row"><b>📈 Doporučení progrese</b>${pr.ready ? `<span class="pill green">Ø ${pr.avg.toFixed(1)}/5</span>` : ''}</div>`;
+  if (pr.ready) h += `<div style="font-size:20px;font-weight:800;margin:8px 0 4px">${esc(pr.title)}</div><div class="small" style="color:#c7c7cc;line-height:1.4">${esc(pr.text)}</div><div class="tiny mut" style="margin-top:6px">Za 14 dní: ${pr.n} tréninků · ${esc(pr.per)}</div>${pr.action ? `<div class="btns"><button class="btn sm green" data-a="setting" data-k="${pr.action.k}" data-v="${pr.action.v}">${esc(pr.action.label)}</button></div>` : ''}`;
+  else h += `<div class="small mut" style="margin-top:6px;line-height:1.4">${esc(pr.text)}</div>`;
+  h += `</div><div class="card"><div class="row"><b>Graf týdne</b><span class="tiny mut">minuty / den · série 🔥 ${streak()}</span></div>${weekBars(null)}</div>`;
+  const list = S.sessions.slice().sort((a,b) => b.ts - a.ts);
+  h += `<h3>${list.length} ${plural(list.length,'záznam','záznamy','záznamů')}</h3>`;
+  if (!list.length) h += `<div class="card mut small">Zatím žádný trénink. Po uložení shrnutí se tu objeví datum, váha a náročnost.</div>`;
+  list.forEach(s => {
+    const open = ui.openSession === s.id;
+    h += `<div class="list"><button class="li" style="width:100%;text-align:left" data-a="openSession" data-v="${s.id}">
+      <div class="exn" style="${s.completed ? '' : 'color:var(--orange)'}">${s.workoutId}</div>
+      <div class="grow"><div class="exname">${esc(fmtShort(s.date))} · ${esc(WORKOUTS[s.workoutId].name)}</div>
+      <div class="extip">${s.completed ? '✓ hotovo' : '⏹ nedokončeno'} · ${esc(weightLbl(s.weight))} · ${fmtMS(s.actualTotal)}${s.catchup ? ' · dohon' : ''}${s.shortened ? ' · zkráceně' : ''}</div></div>
+      <div style="text-align:right"><div style="font-weight:800">${s.difficulty ? s.difficulty + '/5' : '–'}</div><div class="tiny mut">náročnost</div></div></button>`;
+    if (open) {
+      const ck = s.checklist || {}, b = ck.before || {}, du = ck.during || {}, af = ck.after || {};
+      h += `<div style="padding:0 14px 14px">${statsGrid(s)}${exTable(s)}
+        <div class="tiny mut" style="margin-top:10px;line-height:1.5">Checklist: před ${BEFORE.filter(([k]) => b[k]).length}/4 · kola ${Object.keys(du.rounds || {}).length}/${s.rounds} · protažení ${af.protazeni ? '✓' : '✕'} · zápis ${af.zapis ? '✓' : '✕'}</div>
+        ${s.note ? `<div class="rec" style="margin-top:10px">📝 ${esc(s.note)}</div>` : ''}</div>`;
+    }
+    h += `</div>`;
+  });
+  return h;
+}
+
+/* ---------- views: settings ---------- */
+function viewSettings(){
+  const st = S.settings;
+  let h = `<div class="hdr"><div><div class="date">Výchozí hodnoty</div><h1>Nastavení</h1></div></div>`;
+  h += `<h3>Intervaly</h3><div class="list">${intervalRows('settings', st)}</div>`;
+  h += `<h3>Výchozí váha</h3>${weightSeg('setting', st.weight)}`;
+  h += `<h3>Hlas a haptika</h3><div class="list">
+    <div class="li"><div class="grow">Hlasové pokyny<div class="extip">${tts.ok ? (tts.czech ? 'Český hlas: ' + esc(tts.voice.name) : 'Český hlas nenalezen – použije se výchozí hlas (lang cs-CZ)') : 'Syntéza řeči v tomto prohlížeči není – pokyny se zobrazí jako titulky'}</div></div>${sw(st.voice,'toggle','voice')}</div>
+    <div class="li"><div class="grow">Tipy na techniku</div>${sw(st.tips,'toggle','tips')}</div>
+    <div class="li" style="flex-wrap:wrap"><div class="grow">Hlasitost <span class="mut num js-vol">${Math.round(st.volume*100)} %</span></div><input type="range" min="0" max="100" value="${Math.round(st.volume*100)}" data-in="volume"></div>
+    <div class="li"><div class="grow">Vibrace<div class="extip">${navigator.vibrate ? 'navigator.vibrate je k dispozici' : 'Tento prohlížeč nevibruje – haptika je simulovaná na hodinkách'}</div></div>${sw(st.vibrate,'toggle','vibrate')}</div>
+    <div class="li"><button class="btn sm" data-a="testVoice">🔊 Vyzkoušet hlas</button></div></div>`;
+  h += `<h3>Plán a připomínky</h3><div class="list"><div class="li" style="flex-direction:column;align-items:stretch"><div class="small mut">Dny tréninku (sloty v týdnu)</div>
+    <div class="seg" style="margin-top:8px">${[1,2,3,4,5,6,0].map(d => `<button class="${st.days.includes(d) ? 'on' : ''}" data-a="day" data-v="${d}">${DAYS_S[d]}</button>`).join('')}</div></div>
+    <div class="li"><div class="grow">Připomínka večer<div class="extip">Při dluhu eskalace +1 h, +2 h (nejpozději 22:30)</div></div><select data-in="hour">${[16,17,18,19,20,21,22].map(x => `<option value="${x}" ${x === st.hour ? 'selected' : ''}>${x}:00</option>`).join('')}</select></div></div>`;
+  h += `<h3>Testování</h3><div class="list">
+    <div class="li"><div class="grow">Rychlý režim (časovač 5× rychleji)</div>${sw(st.fast,'toggle','fast')}</div>
+    <div class="li"><button class="btn sm" data-a="mdemo">🧪 Otevřít demo panel</button></div></div>`;
+  h += `<div class="tiny mut" style="margin:14px 4px;line-height:1.5">Data jsou jen v tomto prohlížeči (localStorage)${storageOk ? '' : ' – ukládání selhalo, data se po zavření ztratí'}. Žádná telemetrie. Prototyp podle PRD v1.1.</div>`;
+  return h;
+}
+
+/* ---------- sheet ---------- */
+function viewSheet(){
+  if (!ui.sheet) return '';
+  const sheets = {
+    postpone: `<h4>Odložit dohon</h4><p>Dohon nejde odložit bez důvodu. Nemoc a zranění dluh smažou a plán obnoví s lehčím návratem. Cestování odloží dohon o 1 den.</p>
+      ${Object.entries(REASONS).map(([k,l]) => `<button class="btn" data-a="postpone" data-v="${k}">${k === 'nemoc' ? '🤒' : k === 'zraneni' ? '🩹' : '🧳'} ${l}</button>`).join('')}
+      <button class="btn ghost" data-a="closeSheet">Zrušit – jdu cvičit</button>`,
+    end: `<h4>Ukončit trénink?</h4><p>Naměřené časy se uloží jako nedokončený trénink. Do plánu se nepočítá a dluh nesmaže.</p>
+      <button class="btn red" data-a="endRun">Ukončit trénink</button><button class="btn ghost" data-a="closeSheet">Pokračovat v tréninku</button>`,
+    discard: `<h4>Zahodit záznam?</h4><p>Trénink se neuloží do historie${S.pending && S.pending.completed ? ' a nepočítá se jako splněný' : ''}.</p>
+      <button class="btn red" data-a="discard">Zahodit</button><button class="btn ghost" data-a="closeSheet">Zpět</button>`,
+    reset: `<h4>Reset dat?</h4><p>Smaže historii, dluh, nastavení i simulovaný den.</p>
+      <button class="btn red" data-a="resetAll">Smazat vše</button><button class="btn ghost" data-a="closeSheet">Zrušit</button>`
+  };
+  return sheets[ui.sheet] ? `<div class="sheet-bg" data-a="bgClose"><div class="sheet"><div class="grab"></div>${sheets[ui.sheet]}</div></div>` : '';
+}
+
+/* ---------- watch ---------- */
+function renderWatch(){
+  const ws = $('#wscreen'), keep = Array.from(ws.querySelectorAll('.wtoast'));
+  let h;
+  if (S.run) {
+    const r = S.run, ph = curPhase(), m = PH[ph.type];
+    const k = ph.type === 'work' ? `${ph.round}-${ph.ex}` : null;
+    h = `<div class="wtop"><span style="color:${m.color}">${m.label}</span><span class="wclock num">${ph.round ? `${ph.round}/${r.rounds}` : `<span class="js-clock">${lastClock}</span>`}</span></div>
+      <div class="wname">${esc(phaseTitle(ph))}</div>
+      <div class="wring">${ring(98, 8, r.paused ? '#ffd60a' : m.color, 'js-ring')}<div class="t js-timer">0</div></div>
+      <div class="wnext">${r.paused ? '<b style="color:var(--yellow)">POZASTAVENO</b>' : 'Další: ' + esc(nextLabel())}</div>
+      <div class="wbtns"><button class="wb ${r.paused ? 'g' : 'y'}" data-a="pause" title="Pauza / pokračovat">${r.paused ? I.play : I.pause}</button>
+        <button class="wb ${k && r.check.ex[k] ? 'on' : ''}" data-a="wtick" title="Odškrtnout cvik">✓</button>
+        <button class="wb" data-a="skip" title="Přeskočit">${I.next}</button></div>`;
+  } else if (S.pending) {
+    const p = S.pending;
+    h = `<div class="wtop"><span style="color:var(--green)">Shrnutí</span><span class="wclock js-clock num">${lastClock}</span></div>
+      <div style="text-align:center;font-size:28px;margin-top:6px">${p.completed ? '✅' : '⏹️'}</div>
+      <div class="wname" style="min-height:0">${p.completed ? 'Hotovo!' : 'Ukončeno'}</div>
+      <div style="text-align:center;font-size:24px;font-weight:700" class="num">${fmtMS(p.actualTotal)}</div>
+      <div class="wnext">plán ${fmtMS(p.plannedTotal)} · Ø pauza ${Math.round(p.avgRest)} s</div>
+      <div class="wnext" style="color:var(--green);margin-top:auto;margin-bottom:6px">Ohodnoť na iPhonu</div>`;
+  } else {
+    const p = todayPlan(), di = debtInfo(), stk = streak();
+    h = `<div class="wtop"><span style="color:var(--green)">Trenér</span><span class="wclock js-clock num">${lastClock}</span></div>
+      <div style="font-size:11px;color:var(--mut);text-align:center;margin-top:8px">${esc(fmtShort(today()))}</div>`;
+    if (p.done) h += `<div class="wname" style="font-size:20px">Hotovo ✓</div><div class="wnext">Trénink ${p.wid} · ${fmtMS(p.done.actualTotal)}</div><div class="wnext" style="margin-top:auto;margin-bottom:8px">🔥 série ${stk} ${plural(stk,'týden','týdny','týdnů')}</div>`;
+    else h += `<div class="wname" style="font-size:22px;min-height:44px">Trénink ${p.wid}</div>
+        <div class="wnext" style="${di.forced ? 'color:var(--red);font-weight:700' : ''}">${di.forced ? `⚠ Dohon · dluh ${di.n}` : di.n ? 'Dohon odložen' : p.slot ? 'Dnešní trénink' : 'Volný den'}</div>
+        <button class="wstart ${di.forced ? 'red' : ''}" data-a="wstart">▶ Start${di.big && di.n ? ' (2 kola)' : ''}</button>`;
+  }
+  ws.innerHTML = h;
+  keep.forEach(t => ws.appendChild(t));
+}
+
+/* ---------- demo panel ---------- */
+function renderDemo(){
+  const di = debtInfo(), t = today();
+  $('#demo').innerHTML = `<h5>🧪 Demo / testování <span class="pill">${S.settings.fast ? '5×' : '1×'}</span></h5>
+    <div class="tiny mut">Simulovaný den: <b style="color:#fff">${esc(fmtLong(t))}</b>${S.dayOffset ? ` (+${S.dayOffset} ${plural(S.dayOffset,'den','dny','dní')})` : ''}</div>
+    <button class="btn" data-a="simMissed">✕ Simulovat zameškaný den</button>
+    <button class="btn" data-a="nextDay">📅 Posunout na další den</button>
+    <button class="btn" data-a="reminders">⏰ Simulovat večerní připomínky</button>
+    <button class="btn ${S.settings.fast ? 'orange' : ''}" data-a="toggle" data-v="fast">⏩ Rychlý režim (časovač 5× rychleji): ${S.settings.fast ? 'ZAP' : 'VYP'}</button>
+    <button class="btn" data-a="genHistory">📈 Vygenerovat 2 týdny historie</button>
+    <button class="btn" data-a="resetSheet" style="color:var(--red)">🧹 Reset dat</button>
+    <div class="state">Dluh: <b>${di.n}</b>${di.n ? ` (nejstarší ${esc(fmtShort(S.debt[0].date))}, ${di.age} ${plural(di.age,'den','dny','dní')}${di.big ? ', nabídne zkrácenou verzi' : ''})` : ''}${di.postponed ? ' · odloženo' : ''}<br>
+      Rotace: další <b>${ROT[S.rotIdx % 3]}</b> · dnes hotovo: <b>${doneOn(t) ? 'ano' : 'ne'}</b> · slot dnes: <b>${isSlot(t) ? 'ano' : 'ne'}</b><br>
+      Hlas: <b>${tts.ok ? (tts.czech ? 'cs-CZ' : 'bez českého hlasu') : 'nedostupný'}</b> · vibrace: <b>${navigator.vibrate ? 'ano' : 'simulace'}</b> · klávesy: mezerník, ←, →</div>
+    <button class="btn sm mclose" data-a="mclose" style="justify-content:center">Zavřít</button>`;
+}
+
+/* ---------- events ---------- */
+const actions = {
+  go: v => { ui.screen = v; ui.openSession = null; renderAll(); },
+  preview: v => { S.draft = makeDraft({ shortened:v === 'short' }); ui.screen = 'preview'; save(); renderAll(); },
+  quick: v => { const di = debtInfo(); startRun(makeDraft({ shortened: v === 'short' || (v !== 'full' && di.big && di.n > 0) })); },
+  start: () => startRun(S.draft),
+  wstart: () => { const di = debtInfo(); startRun(makeDraft({ shortened:di.big && di.n > 0 }), 'watch'); },
+  dweight: v => { S.draft.weight = +v; save(); renderAll(); },
+  step: (v, el) => {
+    const { scope, k } = el.dataset, d = +el.dataset.d, [lo,hi,stp] = BOUNDS[k];
+    const obj = scope === 'draft' ? S.draft : S.settings;
+    obj[k] = clamp(obj[k] + d * stp, lo, hi); save(); renderAll();
+  },
+  before: v => { S.before[v] = !S.before[v]; save(); renderAll(); },
+  rbefore: v => { S.run.check.before[v] = !S.run.check.before[v]; save(); renderAll(); },
+  cdot: v => { const c = S.run.check; c.ex[v] = !c.ex[v]; delete c.skip[v]; haptic('tick'); save(); renderAll(); },
+  wtick: () => tickCurrent(),
+  pause: () => togglePause(),
+  skip: () => skipPhase(),
+  back: () => backPhase(),
+  voice: () => { S.settings.voice = !S.settings.voice; if (!S.settings.voice) cancelSpeech(); save(); renderAll(); },
+  endSheet: () => { ui.sheet = 'end'; renderPhone(); },
+  endRun: () => finishRun(false),
+  postponeSheet: () => { ui.sheet = 'postpone'; renderPhone(); },
+  postpone: v => postpone(v),
+  discardSheet: () => { ui.sheet = 'discard'; renderPhone(); },
+  discard: () => { S.pending = null; ui.sheet = null; ui.screen = 'home'; save(); renderAll(); toast('Záznam zahozen.', { ms:2000 }); },
+  resetSheet: () => { document.body.classList.remove('m-demo','m-watch'); ui.sheet = 'reset'; renderPhone(); },
+  resetAll: () => resetAll(),
+  closeSheet: () => { ui.sheet = null; renderPhone(); },
+  bgClose: (v, el, e) => { if (e.target === el) { ui.sheet = null; renderPhone(); } },
+  rate: v => { S.pending.difficulty = +v; S.pending.checklist.after.zapis = true; save(); renderAll(); },
+  pweight: v => { S.pending.weight = +v; save(); renderAll(); },
+  after: v => { S.pending.checklist.after[v] = !S.pending.checklist.after[v]; save(); renderAll(); },
+  savePending: () => savePending(),
+  setting: (v, el) => {
+    const k = el.dataset.k; S.settings[k] = +v; save(); renderAll();
+    const lbl = { weight:weightLbl(+v), rounds:roundsLbl(+v), rest:`pauza ${v} s`, work:`cvičení ${v} s` }[k] || v;
+    toast(`Nastaveno: ${lbl}`, { ms:2000, icon:'⚙️' });
+  },
+  toggle: v => { S.settings[v] = !S.settings[v]; if (v === 'voice' && !S.settings.voice) cancelSpeech(); save(); renderAll(); if (v === 'fast') toast(`Rychlý režim ${S.settings.fast ? 'zapnut (5×)' : 'vypnut'}`, { ms:1800, icon:'⏩' }); },
+  day: v => { const d = +v, a = S.settings.days; S.settings.days = a.includes(d) ? a.filter(x => x !== d) : [...a, d].sort(); save(); renderAll(); },
+  testVoice: () => { pickVoice(); say('Další cvik: dřepy s činkami. Tři, dva, jedna. Start!', { interrupt:true }); haptic('start'); if (!tts.ok) toast('Syntéza řeči není v tomto prohlížeči dostupná.'); },
+  openSession: v => { ui.openSession = ui.openSession === v ? null : v; renderPhone(); },
+  simMissed: () => { if (S.run) { toast('Nejdřív ukonči běžící trénink.'); return; } simulateMissed(); },
+  nextDay: () => nextDay(),
+  reminders: () => runReminders(),
+  genHistory: () => genHistory(),
+  mwatch: () => { const on = !document.body.classList.contains('m-watch'); document.body.classList.remove('m-demo'); document.body.classList.toggle('m-watch', on); },
+  mdemo: () => {
+    if (innerWidth > 640) { toast('Demo panel je vpravo pod hodinkami.', { ms:2000 }); return; }
+    const on = !document.body.classList.contains('m-demo'); document.body.classList.remove('m-watch'); document.body.classList.toggle('m-demo', on);
+  },
+  mclose: () => document.body.classList.remove('m-watch','m-demo')
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]');
+  if (!el) { if (e.target.id === 'side') document.body.classList.remove('m-watch','m-demo'); return; }
+  const fn = actions[el.dataset.a];
+  if (fn) { e.preventDefault(); fn(el.dataset.v, el, e); }
+});
+document.addEventListener('input', e => {
+  const k = e.target.dataset && e.target.dataset.in;
+  if (k === 'volume') { S.settings.volume = e.target.value / 100; save(); $$('.js-vol').forEach(x => x.textContent = e.target.value + ' %'); }
+  if (e.target.id === 'note' && S.pending) { S.pending.note = e.target.value; save(); }
+});
+document.addEventListener('change', e => {
+  const k = e.target.dataset && e.target.dataset.in;
+  if (k === 'hour') { S.settings.hour = +e.target.value; save(); renderAll(); }
+  if (k === 'volume') say(`Hlasitost ${Math.round(S.settings.volume * 100)} procent.`, { interrupt:true });
+});
+document.addEventListener('keydown', e => {
+  if (!S.run || /input|textarea|select/i.test(e.target.tagName)) return;
+  if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+  else if (e.code === 'ArrowRight') skipPhase();
+  else if (e.code === 'ArrowLeft') backPhase();
+});
+
+/* ---------- layout scaling (desktop) ---------- */
+function fit(){
+  const st = $('#stage');
+  if (innerWidth <= 640) { st.style.zoom = ''; return; }
+  document.body.classList.remove('m-watch','m-demo');
+  const z = Math.min(1, innerWidth / (414 + 56 + 300 + 40), innerHeight / (868 + 40));
+  st.style.zoom = z < 1 ? z.toFixed(3) : '';
+  document.body.style.overflow = z < 0.55 ? 'auto' : '';
+}
+addEventListener('resize', fit);
+
+/* ---------- boot ---------- */
+evaluateDays();
+if (S.run) S.run.paused = true;
+save();
+fit();
+renderAll();
+setInterval(tick, 100);
+if (S.run) toast('Rozběhnutý trénink obnoven – je pozastavený. Pokračuj tlačítkem.', { icon:'⏸️' });
+else if (debtInfo().forced) setTimeout(() => { toast(`Zameškaný trénink – dohoň ho dnes: Trénink ${S.debt[0].workoutId}.`, { time:`${S.settings.hour}:00`, watch:true }); haptic('remind'); }, 600);
+
+// Hák pro automatické testy (nemá vliv na UI).
+window.__trener = { get S(){ return S; }, actions, today, debtInfo, todayPlan, buildPhases, makeDraft, progression, streak, tick };
+</script>
+</body>
+</html>
