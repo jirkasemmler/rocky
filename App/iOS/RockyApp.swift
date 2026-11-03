@@ -95,11 +95,12 @@ struct RockyApp: App {
 
 struct RootView: View {
     @Environment(WorkoutController.self) private var workout
+    @State private var homePath = NavigationPath()
 
     var body: some View {
         TabView {
             Tab("Dnes", systemImage: "figure.strengthtraining.functional") {
-                NavigationStack { HomeView() }
+                NavigationStack(path: $homePath) { HomeView() }
             }
             Tab("Historie", systemImage: "chart.bar.xaxis") {
                 NavigationStack { HistoryView() }
@@ -107,6 +108,10 @@ struct RootView: View {
             Tab("Nastavení", systemImage: "gearshape") {
                 NavigationStack { SettingsView() }
             }
+        }
+        .onChange(of: workout.stage) { _, stage in
+            // Pop the preview under the running workout so saving ends on Home.
+            if stage == .running { homePath = NavigationPath() }
         }
         .fullScreenCover(isPresented: Binding(
             get: { workout.stage != .idle },

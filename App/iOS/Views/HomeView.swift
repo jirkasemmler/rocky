@@ -2,6 +2,15 @@ import Charts
 import SwiftUI
 import RockyCore
 
+/// Navigation to the workout preview. Value-based so Home can pop back to the root when a
+/// workout starts (after saving you land on Home, not on the old preview).
+struct PreviewRoute: Hashable {
+    var workoutID: WorkoutID
+    var kind: SessionKind
+    var roundsOverride: Int?
+    var title: String
+}
+
 /// PRD screen "Home": today's workout button, the week overview, debt banner.
 struct HomeView: View {
     @Environment(TrainingStore.self) private var store
@@ -32,6 +41,10 @@ struct HomeView: View {
             .padding()
         }
         .navigationTitle("Rocky")
+        .navigationDestination(for: PreviewRoute.self) { route in
+            WorkoutPreviewView(workoutID: route.workoutID, kind: route.kind, roundsOverride: route.roundsOverride,
+                               title: route.title)
+        }
         .refreshable { store.refresh() }
         .task {
             // Keep "today" fresh while the screen is open (e.g. across midnight).
@@ -67,10 +80,8 @@ struct HomeView: View {
                                        roundsOverride: due.roundsOverride)
                 Text("\(Format.rounds(rounds)) · cca \(Format.minutes(plan.plannedDuration))\(due.isShortened ? " · zkrácená verze" : "")")
                     .foregroundStyle(.secondary)
-                NavigationLink {
-                    WorkoutPreviewView(workoutID: due.workoutID, kind: due.kind.sessionKind, roundsOverride: due.roundsOverride,
-                                       title: Format.dueTitle(due))
-                } label: {
+                NavigationLink(value: PreviewRoute(workoutID: due.workoutID, kind: due.kind.sessionKind,
+                                                   roundsOverride: due.roundsOverride, title: Format.dueTitle(due))) {
                     Label("Začít trénink", systemImage: "play.fill")
                         .font(.title2.bold())
                         .frame(maxWidth: .infinity, minHeight: 64)
@@ -92,10 +103,9 @@ struct HomeView: View {
                     .font(.title.bold())
                 Text("Další trénink: \(LocalizedText.workoutName(state.nextWorkoutID))")
                     .foregroundStyle(.secondary)
-                NavigationLink("Přesto si zacvičit (bonus)") {
-                    WorkoutPreviewView(workoutID: state.nextWorkoutID, kind: .bonus, roundsOverride: nil,
-                                       title: "Bonus: \(LocalizedText.workoutName(state.nextWorkoutID))")
-                }
+                NavigationLink("Přesto si zacvičit (bonus)",
+                               value: PreviewRoute(workoutID: state.nextWorkoutID, kind: .bonus, roundsOverride: nil,
+                                                   title: "Bonus: \(LocalizedText.workoutName(state.nextWorkoutID))"))
                 .accessibilityIdentifier("startBonus")
             }
 

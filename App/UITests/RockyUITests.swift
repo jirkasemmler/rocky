@@ -41,8 +41,10 @@ final class RockyUITests: XCTestCase {
         expect(app.navigationBars["Rocky"].waitForExistence(timeout: 5))
         openPreview(app)
 
+        // The start button is at the bottom of a lazy list.
+        expect(app.navigationBars.firstMatch.waitForExistence(timeout: 5))
         let startWorkout = app.buttons["startWorkout"]
-        expect(startWorkout.waitForExistence(timeout: 5))
+        expect(startWorkout.waitForExistence(timeout: 2) || app.swipeUpUntil(startWorkout))
         startWorkout.tap()
 
         // Running: warm-up first.
@@ -67,10 +69,10 @@ final class RockyUITests: XCTestCase {
         expect(confirm.waitForExistence(timeout: 2))
         confirm.tap()
 
-        let save = app.buttons["saveSession"]
-        expect(save.waitForExistence(timeout: 5))
-        expect(app.staticTexts["Trénink ukončen předčasně"].exists)
+        expect(app.staticTexts["Trénink ukončen předčasně"].waitForExistence(timeout: 5))
         app.buttons["difficulty3"].tap()
+        let save = app.buttons["saveSession"]
+        expect(save.exists || app.swipeUpUntil(save))
         save.tap()
 
         // Back on Home; the session is in the history.
