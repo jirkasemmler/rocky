@@ -5,20 +5,21 @@ Owner: Jiri Semmler. Source of requirements: [PRD.md](PRD.md) (v1.1, Czech; unto
 
 Items marked **proposed, awaiting Jiri's confirmation** are defaults chosen to unblock the
 implementation. They are all configurable or isolated in one place so they can be changed cheaply.
+Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jiri.
 
 ## A. Open questions from PRD §11
 
 | # | PRD question | Proposed default | Where it lives | Status |
 |---|---|---|---|---|
-| Q-1 | Latest hour for escalating notifications? | **22:30**. Escalation = reminder at the set hour, +1 h, +2 h, capped at 22:30; if the set hour itself is after 22:30 only that one reminder is sent. Editable in Settings ("Nejpozději"). | `Settings.latestEscalation`, `DebtPlanner.reminderTimes` | proposed, awaiting Jiri's confirmation |
-| Q-2 | Only a shortened version when debt is older than 2 days? | **Yes.** Debt older than 2 days (travel days are not counted) collapses to a single *shortened* catch-up (2 rounds). No further debt is accumulated or nagged about until it is paid. Doing the shortened workout clears the whole long debt. | `DebtPlanner.longDebtThresholdDays`, `DebtPlanner.shortenedRounds` | proposed, awaiting Jiri's confirmation |
-| Q-3 | Male or female voice, speech rate? | **System Czech voice, default female "Zuzana"** (best installed quality: premium > enhanced > default). Voice is selectable among installed cs-CZ voices; speech rate is a slider in Settings (default 0.5 = iOS default rate). | `Settings.voiceIdentifier` (nil = Zuzana), `Settings.speechRate`, `SpeechService.voice(identifier:)` | proposed, awaiting Jiri's confirmation |
-| Q-4 | Music / metronome for lowering tempo? | **Out of v1.** The app plays alongside the user's own music (mix + ducking). A tempo metronome ("3 s down") can be added later as an optional cue type. | — | proposed, awaiting Jiri's confirmation |
+| Q-1 | Latest hour for escalating notifications? | **22:30**. Escalation = reminder at the set hour, +1 h, +2 h, capped at 22:30; if the set hour itself is after 22:30 only that one reminder is sent. Editable in Settings ("Nejpozději"). | `Settings.latestEscalation`, `DebtPlanner.reminderTimes` | **confirmed by Jiri, 2026-11-03** |
+| Q-2 | Only a shortened version when debt is older than 2 days? | **Yes.** Debt older than 2 days (travel days are not counted) collapses to a single *shortened* catch-up (2 rounds). No further debt is accumulated or nagged about until it is paid. Doing the shortened workout clears the whole long debt. | `DebtPlanner.longDebtThresholdDays`, `DebtPlanner.shortenedRounds` | **confirmed by Jiri, 2026-11-03** |
+| Q-3 | Male or female voice, speech rate? | **System Czech voice, default female "Zuzana"** (best installed quality: premium > enhanced > default). Voice is selectable among installed cs-CZ voices; speech rate is a slider in Settings (default 0.5 = iOS default rate). | `Settings.voiceIdentifier` (nil = Zuzana), `Settings.speechRate`, `SpeechService.voice(identifier:)` | **confirmed by Jiri, 2026-11-03** |
+| Q-4 | Music / metronome for lowering tempo? | **Out of v1.** The app plays alongside the user's own music (mix + ducking). A tempo metronome ("3 s down") can be added later as an optional cue type. | — | **confirmed by Jiri, 2026-11-03** |
 
 ## B. Interpretation decisions (PRD ambiguities)
 
 - **D-01 Training days default Mon/Wed/Fri, reminder 19:00.** PRD says "e.g. Mon, Wed, Fri" and
-  "evening". Both editable. *(proposed, awaiting Jiri's confirmation)*
+  "evening". Both editable. *(**confirmed by Jiri, 2026-11-03**)*
 - **D-02 Stretching default 2 min.** PRD says "short stretch" without a length. Editable (0–10 min).
   *(proposed, awaiting Jiri's confirmation)*
 - **D-03 Escalation only on catch-up days by default.** PRD describes escalation in the catch-up
@@ -89,7 +90,25 @@ implementation. They are all configurable or isolated in one place so they can b
   container (iPhone) / app container (watch). No accounts, no network, no telemetry.
 - **D-22 Bundle IDs** `cz.semmler.rocky` and `cz.semmler.rocky.watchkitapp`, App Group
   `group.cz.semmler.rocky`. Change them in `project.yml` if you use a different prefix.
-  *(proposed, awaiting Jiri's confirmation)*
+  *(set with the rename to Rocky requested by Jiri, 2026-11-03)*
+- **D-23 Name "Rocky" and "Rockyho hlášky".** The app is called Rocky (after Rocky Balboa).
+  Optional flavour lines in Czech — funny and motivating, never insulting, never about body
+  shape or weight — for: workout start, exercise change, rest, last round, finished workout,
+  missed-workout catch-up, streak and the shortened version (`RockyLines.swift`, 4–5 variants
+  each). Rules:
+  - Functional cues (exercise name, "Pauza.", "Konec kola", 3-2-1) are unchanged, short and
+    always spoken first; a flavour line is a separate, interruptible cue (`VoiceCueKind.flavor`).
+  - Placement per workout: opening line in the warm-up (catch-up / shortened variant when it
+    applies), every 2nd exercise of a round, rests that carry no technique tip, the round rest
+    before the last round, and after "Konec tréninku".
+  - Catch-up and shortened reminders get a line in front of the body (titles unchanged);
+    Home shows a catch-up / shortened / streak line; Summary shows a "finished" line.
+  - Selection: SplitMix64 `SeededGenerator` injected into `RockyPhrasebook`, no immediate
+    repeats. The app seeds it from the session ID (iPhone and Watch pick the same lines);
+    reminders and Home use the day number (stable for the day). Tests assert membership and
+    determinism, not exact texts.
+  - Settings: toggle "Rockyho hlášky" (default **on**) and "Oslovení (5. pád)"; empty
+    address = "šampione". Older settings files decode with the defaults.
 
 ## C. Not implemented yet (known gaps vs. PRD)
 

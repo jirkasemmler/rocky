@@ -23,11 +23,17 @@
 
 ## 2. Get the code onto the Mac and generate the project
 
-The repository is local only (no remote). Copy the whole `rocky` folder to the Mac
-(e.g. `git clone /path/to/rocky` from a copied folder, or zip it), then:
+The repository is private on GitHub. Clone it on the Mac (needs access to the private repo,
+e.g. `gh auth login` first):
 
 ```sh
+gh repo clone jirkasemmler/rocky   # or: git clone git@github.com:jirkasemmler/rocky.git
 cd rocky
+```
+
+Then:
+
+```sh
 # optional sanity check of the shared logic (also runs on macOS):
 (cd Packages/RockyCore && swift test)
 xcodegen generate          # creates Rocky.xcodeproj from project.yml
@@ -84,7 +90,7 @@ For **both** targets (`Rocky` = iPhone, `RockyWatch` = watch) in *Signing & Capa
 
 ## 6. What was verified on Linux (for reference)
 
-- `Packages/RockyCore`: `swift test` — 110 XCTest tests passing (Swift 6.4.2, Linux x86_64).
+- `Packages/RockyCore`: `swift test` — 132 XCTest tests passing (Swift 6.4.2, Linux x86_64).
 - `App/Shared` files that only use Foundation/Observation (`TrainingStore`, `WorkoutController`,
   `Formatting`, protocols) type-check against RockyCore on Linux in a scratch package.
 - All `App/**/*.swift` files pass `swiftc -parse` (syntax only — **not** a type check against
