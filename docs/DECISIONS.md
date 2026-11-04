@@ -121,6 +121,10 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
   reminder at the set hour on a normal day stays `.active`. *(changed 2026-11-03 with the first
   Mac build: the prompt for the build asked for time-sensitive notifications; PRD 8a wants the
   catch-up to be "enforcing")*
+  *(2026-11-04: the entitlement is **commented out** in `project.yml`, because Jiri signs with a
+  free Personal Team and Apple refuses the Time Sensitive capability for personal teams. The
+  code still asks for `.timeSensitive`; without the entitlement iOS delivers these as normal
+  notifications. With a paid developer account, re-enable the line in `project.yml`.)*
 - **D-20 Checklist auto-tick wins.** Exercise/round/warm-up/stretch items tick automatically when
   an interval runs to completion; a manual untick of an auto-ticked item is re-applied on the
   next tick. Manual ticks of skipped items are kept.

@@ -61,10 +61,11 @@ For **both** targets (`Rocky` = iPhone, `RockyWatch` = watch) in *Signing & Capa
      with locked screen). Watch: *Workout processing* (`WKBackgroundModes`).
    - **App Groups** — `group.cz.semmler.rocky` on the iPhone app, the watch app and the
      complication extension `RockyWatchWidgets` (the complication reads the watch's data file).
-   - **Time Sensitive Notifications** — iPhone target (catch-up and escalated reminders). If
-     signing with your team rejects it, remove
-     `com.apple.developer.usernotifications.time-sensitive` from `project.yml`; reminders then
-     arrive as normal (`.active`) notifications.
+   - **Time Sensitive Notifications** — needs a paid developer account; a free Personal Team
+     cannot sign it, so the entitlement is commented out in `project.yml` (reminders arrive as
+     normal notifications). With a paid team, uncomment it and regenerate.
+   - `DEVELOPMENT_TEAM` in `project.yml` is Jiri's Personal Team (`664248ZZ76`); change it for
+     another account. Free signing expires after 7 days: rebuild and install again (data stays).
    - The complication extension (`cz.semmler.rocky.watchkitapp.widgets`) needs signing with
      the same team as the watch app.
 

@@ -16,7 +16,7 @@ settings:
     CURRENT_PROJECT_VERSION: "1"
     CODE_SIGN_STYLE: Automatic
     # Set your team in Xcode (Signing & Capabilities) or here.
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: "664248ZZ76"
     # Swift 6 language mode everywhere (RockyCore too). See docs/DECISIONS.md (D-16).
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
@@ -73,8 +73,9 @@ targets:
           - group.cz.semmler.rocky
         com.apple.developer.healthkit: true
         com.apple.developer.healthkit.access: []
-        # Catch-up and escalated reminders break through Focus (D-19).
-        com.apple.developer.usernotifications.time-sensitive: true
+        # Time-sensitive reminders (D-19) need a paid developer account: personal (free) teams
+        # cannot sign this capability. With a paid team add back:
+        #   com.apple.developer.usernotifications.time-sensitive: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: cz.semmler.rocky
