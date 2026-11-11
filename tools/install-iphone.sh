@@ -6,7 +6,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-DEVICE=$(xcrun devicectl list devices 2>/dev/null | awk '/physical/ && /iPhone/ && / connected /' | grep -oE '[0-9A-F]{8}-[0-9A-F]{16}' | head -1 || true)
+# Real iPhones only (not simulators). The "Reality" column is empty while the phone is
+# "available" but not fully connected yet, so filter out simulators instead of matching "physical".
+DEVICE=$(xcrun devicectl list devices 2>/dev/null | grep -v simulated | grep -E ' (connected|available) ' \
+  | grep -oE '[0-9A-F]{8}-[0-9A-F]{16}' | head -1 || true)
 if [ -z "$DEVICE" ]; then
   echo "iPhone nenalezen. Připoj ho kabelem, odemkni a zkus to znovu." >&2
   xcrun devicectl list devices 2>/dev/null | grep physical >&2 || true
