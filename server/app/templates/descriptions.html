@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Popisy{% endblock %}
+{% block content %}
+<h1>Rozcvička a protažení <span class="muted">revize {{ revision }}</span></h1>
+<form method="post" action="/admin/descriptions" class="card">
+  <input type="hidden" name="csrf" value="{{ session.csrf }}">
+  <input type="hidden" name="base_revision" value="{{ revision }}">
+  <label>Rozcvička <textarea name="warmUp" rows="4" maxlength="500" required>{{ warm_up }}</textarea></label>
+  <label>Protažení <textarea name="stretch" rows="4" maxlength="500" required>{{ stretch }}</textarea></label>
+  <button type="submit">Uložit</button>
+</form>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Záznamy{% endblock %}
+{% block content %}
+<h1>Odcvičené tréninky</h1>
+<table>
+<thead><tr><th>Datum</th><th>Trénink</th><th>Druh</th><th>Dokončeno</th><th>Kola</th><th>Činky</th><th>Náročnost</th><th>Délka</th><th>Poznámka</th></tr></thead>
+<tbody>
+{% for s in sessions %}
+<tr>
+  <td>{{ s.date }}</td>
+  <td>{{ s.workoutName or s.workoutID }}</td>
+  <td>{{ s.kind }}</td>
+  <td>{{ 'ano' if s.completed else 'ne' }}</td>
+  <td>{{ s.rounds }}</td>
+  <td>{{ s.weightKg }} kg</td>
+  <td>{{ s.difficulty or '' }}</td>
+  <td>{{ s.actualSeconds | duration }}</td>
+  <td>{{ s.note }}</td>
+</tr>
+{% else %}
+<tr><td colspan="9" class="muted">Zatím žádné záznamy.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

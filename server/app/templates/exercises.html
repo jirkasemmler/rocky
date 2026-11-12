@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Cviky{% endblock %}
+{% block content %}
+<h1>Cviky <span class="muted">revize {{ revision }}</span></h1>
+<p><a class="button" href="/admin/exercises/new">Nový cvik</a></p>
+<table>
+<thead><tr><th></th><th>ID</th><th>Název</th><th>Cíl</th><th>Vybavení</th><th>V trénincích</th><th>Stav</th><th></th></tr></thead>
+<tbody>
+{% for e in exercises %}
+<tr class="{{ 'archived' if e.archived }}">
+  <td>{% if e.imageAssetID %}<img class="thumb" src="/admin/assets/{{ e.imageAssetID }}" alt="">{% endif %}</td>
+  <td><code>{{ e.id }}</code></td>
+  <td><a href="/admin/exercises/{{ e.id }}">{{ e.name }}</a></td>
+  <td>{% if e.target.reps %}{{ e.target.reps.min }}–{{ e.target.reps.max }} opak.{% else %}{{ e.target.time.minSeconds }}–{{ e.target.time.maxSeconds }} s{% endif %}{% if e.perSide %} / strana{% endif %}</td>
+  <td>{{ 'činky' if e.equipment == 'dumbbells' else 'vlastní váha' }}</td>
+  <td>{{ usage.get(e.id, []) | join(', ') }}</td>
+  <td>{{ 'archivováno' if e.archived else 'aktivní' }}</td>
+  <td>
+    <form method="post" action="/admin/exercises/{{ e.id }}/archive" class="inline">
+      <input type="hidden" name="csrf" value="{{ session.csrf }}">
+      <input type="hidden" name="base_revision" value="{{ revision }}">
+      <input type="hidden" name="archived" value="{{ '0' if e.archived else '1' }}">
+      <button type="submit" class="small">{{ 'Obnovit' if e.archived else 'Archivovat' }}</button>
+    </form>
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

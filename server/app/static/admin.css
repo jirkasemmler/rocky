@@ -1,0 +1,30 @@
+:root { --fg: #1d1d1f; --muted: #6e6e73; --bg: #fafafa; --card: #fff; --line: #ddd; --accent: #c0392b; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.45 -apple-system, system-ui, sans-serif; color: var(--fg); background: var(--bg); }
+header { display: flex; gap: 1.5rem; align-items: center; padding: .75rem 1.5rem; background: var(--fg); color: #fff; flex-wrap: wrap; }
+header a, header .link { color: #fff; }
+nav { display: flex; gap: 1rem; flex: 1; flex-wrap: wrap; }
+main { max-width: 1100px; margin: 0 auto; padding: 1rem 1.5rem 3rem; }
+h1 { font-size: 1.5rem; } h2 { font-size: 1.15rem; }
+.muted { color: var(--muted); font-weight: normal; font-size: .9em; }
+.error { background: #fdecea; border: 1px solid #f5c2bd; padding: .6rem .9rem; border-radius: 6px; }
+.notice { background: #eef7ee; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.25rem; margin: 1rem 0; max-width: 760px; }
+label { display: block; margin: .6rem 0; }
+label.inline { display: inline-block; margin-right: 1rem; }
+input, select, textarea { font: inherit; padding: .35rem .5rem; border: 1px solid var(--line); border-radius: 5px; width: 100%; }
+input[type=checkbox], input[type=radio] { width: auto; }
+input.num { width: 6rem; }
+fieldset { border: 1px solid var(--line); border-radius: 6px; margin: .8rem 0; }
+button, .button { font: inherit; background: var(--accent); color: #fff; border: 0; border-radius: 5px; padding: .45rem .9rem; cursor: pointer; text-decoration: none; display: inline-block; }
+button.small { padding: .2rem .55rem; font-size: .85em; }
+button.danger { background: #7f1d1d; }
+button.link { background: none; padding: 0; text-decoration: underline; }
+form.inline { display: inline; }
+table { border-collapse: collapse; width: 100%; background: var(--card); }
+th, td { text-align: left; padding: .4rem .5rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr.archived { color: var(--muted); }
+img.thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
+img.preview { max-width: 260px; max-height: 260px; display: block; margin: .5rem 0; }
+code.secret { font-size: 1.05em; word-break: break-all; background: #fff; padding: .3rem .5rem; border: 1px solid var(--line); }
+ul.columns { columns: 2; }

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Nový cvik' if is_new else values.name }}{% endblock %}
+{% block content %}
+<h1>{{ 'Nový cvik' if is_new else 'Cvik ' ~ values.id }} <span class="muted">revize {{ revision }}</span></h1>
+<form method="post" enctype="multipart/form-data" class="card"
+      action="{{ '/admin/exercises/new' if is_new else '/admin/exercises/' ~ values.id }}">
+  <input type="hidden" name="csrf" value="{{ session.csrf }}">
+  <input type="hidden" name="base_revision" value="{{ revision }}">
+  {% if is_new %}
+  <label>ID (malá písmena, číslice, pomlčky; nejde později změnit)
+    <input name="id" value="{{ values.id }}" required pattern="[a-z0-9][a-z0-9\-]{1,39}"></label>
+  {% endif %}
+  <label>Název <input name="name" value="{{ values.name }}" required maxlength="60"></label>
+  <label>Tip k technice <input name="techniqueTip" value="{{ values.techniqueTip }}" maxlength="200"></label>
+  <label>Návod „Jak na to“ <textarea name="instructions" rows="8" maxlength="2000">{{ values.instructions }}</textarea></label>
+  <fieldset>
+    <legend>Cíl</legend>
+    <label class="inline"><input type="radio" name="targetType" value="reps" {{ 'checked' if values.targetType == 'reps' }}> opakování</label>
+    <label class="inline"><input type="radio" name="targetType" value="time" {{ 'checked' if values.targetType == 'time' }}> čas (s)</label>
+    <label class="inline">od <input name="min" type="number" value="{{ values.min }}" required class="num"></label>
+    <label class="inline">do <input name="max" type="number" value="{{ values.max }}" required class="num"></label>
+  </fieldset>
+  <label>Vybavení
+    <select name="equipment">
+      <option value="bodyweight" {{ 'selected' if values.equipment == 'bodyweight' }}>vlastní váha</option>
+      <option value="dumbbells" {{ 'selected' if values.equipment == 'dumbbells' }}>činky</option>
+    </select></label>
+  <label class="inline"><input type="checkbox" name="perSide" {{ 'checked' if values.perSide }}> na každou stranu</label>
+  <label class="inline"><input type="checkbox" name="switchesSideMidway" {{ 'checked' if values.switchesSideMidway }}> v půlce změna strany</label>
+  <fieldset>
+    <legend>Obrázek</legend>
+    {% if values.imageAssetID %}
+      <img class="preview" src="/admin/assets/{{ values.imageAssetID }}" alt="Obrázek cviku">
+      <label class="inline"><input type="checkbox" name="removeImage"> odebrat obrázek</label>
+    {% endif %}
+    <label>Nahrát (PNG, JPEG, WebP, GIF; max 2 MB, 2048 px) <input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif"></label>
+  </fieldset>
+  <label>Poznámka ke změně <input name="message" maxlength="500" placeholder="volitelné"></label>
+  <button type="submit">Uložit</button>
+  <a href="/admin/exercises">Zpět</a>
+</form>
+{% endblock %}

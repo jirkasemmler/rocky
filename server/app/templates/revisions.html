@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Revize{% endblock %}
+{% block content %}
+<h1>Revize katalogu</h1>
+<table>
+<thead><tr><th>Revize</th><th>Kdy</th><th>Autor</th><th>Zpráva</th><th></th></tr></thead>
+<tbody>
+{% for r in revisions %}
+<tr>
+  <td>{{ r.revision }}{% if r.revision == revision %} (aktuální){% endif %}</td>
+  <td>{{ r.createdAt }}</td>
+  <td>{{ r.author }}</td>
+  <td>{{ r.message }}</td>
+  <td>{% if r.revision != revision %}
+    <form method="post" action="/admin/revisions/{{ r.revision }}/rollback" class="inline">
+      <input type="hidden" name="csrf" value="{{ session.csrf }}">
+      <input type="hidden" name="base_revision" value="{{ revision }}">
+      <button type="submit" class="small">Vrátit na tuto revizi</button>
+    </form>{% endif %}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}

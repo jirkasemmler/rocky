@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Rocky{% endblock %} · Rocky admin</title>
+<link rel="stylesheet" href="/admin/static/admin.css">
+</head>
+<body>
+<header>
+  <strong>Rocky</strong>
+  {% if session %}
+  <nav>
+    <a href="/admin/exercises">Cviky</a>
+    <a href="/admin/workouts">Tréninky</a>
+    <a href="/admin/descriptions">Popisy</a>
+    <a href="/admin/revisions">Revize</a>
+    <a href="/admin/sessions">Záznamy</a>
+    <a href="/admin/tokens">Tokeny</a>
+  </nav>
+  <form method="post" action="/admin/logout" class="inline">
+    <input type="hidden" name="csrf" value="{{ session.csrf }}">
+    <button type="submit" class="link">Odhlásit ({{ session.token.name }})</button>
+  </form>
+  {% endif %}
+</header>
+<main>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>

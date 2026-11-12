@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Přihlášení{% endblock %}
+{% block content %}
+<h1>Přihlášení</h1>
+<form method="post" action="/admin/login" class="card">
+  <input type="hidden" name="csrf" value="{{ csrf }}">
+  <label>Admin token <input type="password" name="token" autocomplete="off" required autofocus></label>
+  <button type="submit">Přihlásit</button>
+</form>
+<p class="muted">Token vytvoříš příkazem <code>rocky-admin token create --scope admin --name &lt;jméno&gt;</code>.</p>
+{% endblock %}

@@ -1,0 +1,14 @@
+services:
+  rocky:
+    build: .
+    image: rocky-server:latest
+    container_name: rocky
+    restart: unless-stopped
+    ports:
+      # Only on the host's loopback; `tailscale serve` publishes it to the tailnet with HTTPS.
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - ./data:/data
+    environment:
+      TZ: Europe/Prague
+      ROCKY_BACKUP_HOUR: "3"

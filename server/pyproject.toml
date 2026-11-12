@@ -1,0 +1,35 @@
+[project]
+name = "rocky-server"
+version = "0.1.0"
+description = "Rocky server: exercise catalog, workout data sync, MCP for an AI agent, web admin"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.162.5",
+    "jinja2>=3.1.6",
+    "mcp>=2.3.0",
+    "pillow>=13.0.0",
+    "pydantic>=2.14.3",
+    "python-multipart>=0.0.33",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+rocky-admin = "app.cli:main"
+rocky-server = "app.main:run"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

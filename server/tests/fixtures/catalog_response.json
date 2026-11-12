@@ -1,0 +1,219 @@
+{
+  "exercises": [
+    {
+      "archived": false,
+      "equipment": "dumbbells",
+      "id": "squat",
+      "name": "Dřepy s činkami",
+      "perSide": false,
+      "switchesSideMidway": false,
+      "target": {
+        "reps": {
+          "max": 15,
+          "min": 12
+        }
+      },
+      "techniqueTip": "Váha na patách, kolena ve směru špiček, záda rovná."
+    },
+    {
+      "archived": false,
+      "equipment": "bodyweight",
+      "id": "push-up",
+      "name": "Kliky",
+      "perSide": false,
+      "switchesSideMidway": false,
+      "target": {
+        "reps": {
+          "max": 12,
+          "min": 8
+        }
+      },
+      "techniqueTip": "Tělo drž v jedné linii, lokty asi čtyřicet pět stupňů od těla."
+    },
+    {
+      "archived": false,
+      "equipment": "dumbbells",
+      "id": "bent-over-row",
+      "name": "Veslování s činkou v předklonu",
+      "perSide": true,
+      "switchesSideMidway": true,
+      "target": {
+        "reps": {
+          "max": 12,
+          "min": 12
+        }
+      },
+      "techniqueTip": "Záda rovná, táhni loket podél těla směrem k boku."
+    },
+    {
+      "archived": false,
+      "equipment": "bodyweight",
+      "id": "plank",
+      "name": "Plank",
+      "perSide": false,
+      "switchesSideMidway": false,
+      "target": {
+        "time": {
+          "maxSeconds": 45,
+          "minSeconds": 30
+        }
+      },
+      "techniqueTip": "Zpevni břicho i hýždě a nepropadej se v bedrech."
+    },
+    {
+      "archived": false,
+      "equipment": "dumbbells",
+      "id": "reverse-lunge",
+      "name": "Výpady vzad s činkami",
+      "perSide": true,
+      "switchesSideMidway": false,
+      "target": {
+        "reps": {
+          "max": 10,
+          "min": 10
+        }
+      },
+      "techniqueTip": "Krok vzad, přední koleno nad kotníkem, trup vzpřímeně. Střídej nohy."
+    },
+    {
+      "archived": false,
+      "equipment": "dumbbells",
+      "id": "overhead-press",
+      "name": "Tlaky nad hlavu",
+      "perSide": false,
+      "switchesSideMidway": false,
+      "target": {
+        "reps": {
+          "max": 12,
+          "min": 10
+        }
+      },
+      "techniqueTip": "Zpevni břicho, neprohýbej se v zádech a nahoře propni paže."
+    },
+    {
+      "archived": false,
+      "equipment": "dumbbells",
+      "id": "glute-bridge",
+      "name": "Glute bridge s činkou",
+      "perSide": false,
+      "switchesSideMidway": false,
+      "target": {
+        "reps": {
+          "max": 15,
+          "min": 15
+        }
+      },
+      "techniqueTip": "Zatlač patami do země, nahoře stiskni hýždě, bedra neprohýbej."
+    },
+    {
+      "archived": false,
+      "equipment": "bodyweight",
+      "id": "dead-bug",
+      "name": "Dead bug",
+      "perSide": true,
+      "switchesSideMidway": false,
+      "target": {
+        "reps": {
+          "max": 10,
+          "min": 10
+        }
+      },
+      "techniqueTip": "Bedra přitlač k podložce a střídej strany pomalu a pod kontrolou."
+    },
+    {
+      "archived": false,
+      "equipment": "dumbbells",
+      "id": "bulgarian-split-squat",
+      "name": "Bulharský dřep",
+      "perSide": true,
+      "switchesSideMidway": true,
+      "target": {
+        "reps": {
+          "max": 10,
+          "min": 8
+        }
+      },
+      "techniqueTip": "Zadní noha na židli, váha na přední noze, jdi kolmo dolů."
+    },
+    {
+      "archived": false,
+      "equipment": "bodyweight",
+      "id": "close-grip-push-up",
+      "name": "Kliky s užším postavením rukou",
+      "perSide": false,
+      "switchesSideMidway": false,
+      "target": {
+        "reps": {
+          "max": 12,
+          "min": 8
+        }
+      },
+      "techniqueTip": "Dlaně pod rameny, lokty veď těsně podél těla."
+    },
+    {
+      "archived": false,
+      "equipment": "dumbbells",
+      "id": "romanian-deadlift",
+      "name": "Rumunský mrtvý tah s činkami",
+      "perSide": false,
+      "switchesSideMidway": false,
+      "target": {
+        "reps": {
+          "max": 15,
+          "min": 12
+        }
+      },
+      "techniqueTip": "Boky posílej dozadu, záda rovná, činky kloužou podél nohou."
+    },
+    {
+      "archived": false,
+      "equipment": "bodyweight",
+      "id": "side-plank",
+      "name": "Boční plank",
+      "perSide": true,
+      "switchesSideMidway": true,
+      "target": {
+        "time": {
+          "maxSeconds": 30,
+          "minSeconds": 20
+        }
+      },
+      "techniqueTip": "Tělo v jedné linii, boky drž nahoře."
+    }
+  ],
+  "revision": 1,
+  "stretchDescription": "Protáhni přední a zadní stranu stehen, hýždě, hrudník a ramena. Dýchej klidně.",
+  "warmUpDescription": "Krouž rameny a pažemi, zakruž boky, pár lehkých dřepů a poskoky na místě.",
+  "workouts": [
+    {
+      "exerciseIDs": [
+        "squat",
+        "push-up",
+        "bent-over-row",
+        "plank"
+      ],
+      "id": "A",
+      "name": "Trénink A"
+    },
+    {
+      "exerciseIDs": [
+        "reverse-lunge",
+        "overhead-press",
+        "glute-bridge",
+        "dead-bug"
+      ],
+      "id": "B",
+      "name": "Trénink B"
+    },
+    {
+      "exerciseIDs": [
+        "bulgarian-split-squat",
+        "close-grip-push-up",
+        "romanian-deadlift",
+        "side-plank"
+      ],
+      "id": "C",
+      "name": "Trénink C"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Tokeny{% endblock %}
+{% block content %}
+<h1>Přístupové tokeny</h1>
+{% if created %}
+<div class="card notice">
+  <p>Token <strong>{{ created.name }}</strong> ({{ created.scope }}) vytvořen. Zkopíruj si ho teď, znovu už ho neuvidíš:</p>
+  <p><code class="secret">{{ created.secret }}</code></p>
+</div>
+{% endif %}
+<table>
+<thead><tr><th>Jméno</th><th>Rozsah</th><th>Vytvořen</th><th>Naposledy použit</th><th>Zrušen</th><th></th></tr></thead>
+<tbody>
+{% for t in tokens %}
+<tr class="{{ 'archived' if t.revoked_at }}">
+  <td>{{ t.name }}{% if t.id == session.token.id %} (ty){% endif %}</td>
+  <td>{{ t.scope }}</td>
+  <td>{{ t.created_at }}</td>
+  <td>{{ t.last_used_at or '' }}</td>
+  <td>{{ t.revoked_at or '' }}</td>
+  <td>{% if not t.revoked_at %}
+    <form method="post" action="/admin/tokens/{{ t.id }}/revoke" class="inline">
+      <input type="hidden" name="csrf" value="{{ session.csrf }}">
+      <button type="submit" class="small danger">Zrušit</button>
+    </form>{% endif %}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<form method="post" action="/admin/tokens" class="card">
+  <h2>Nový token</h2>
+  <input type="hidden" name="csrf" value="{{ session.csrf }}">
+  <label>Jméno <input name="name" required maxlength="40" placeholder="např. iphone, claude"></label>
+  <label>Rozsah
+    <select name="scope">
+      {% for s in scopes %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+    </select></label>
+  <button type="submit">Vytvořit</button>
+</form>
+{% endblock %}

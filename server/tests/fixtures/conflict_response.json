@@ -1,0 +1,424 @@
+{
+  "current": {
+    "changeSeq": 1,
+    "deleted": false,
+    "key": "6B0E4C8F-0F65-4C4B-9D0B-3B9C1C2B4F10",
+    "kind": "session",
+    "payload": {
+      "checklist": {
+        "exercises": [
+          {
+            "exerciseIndex": 0,
+            "round": 3
+          },
+          {
+            "exerciseIndex": 2,
+            "round": 1
+          },
+          {
+            "exerciseIndex": 0,
+            "round": 2
+          },
+          {
+            "exerciseIndex": 3,
+            "round": 2
+          },
+          {
+            "exerciseIndex": 2,
+            "round": 2
+          },
+          {
+            "exerciseIndex": 3,
+            "round": 3
+          },
+          {
+            "exerciseIndex": 2,
+            "round": 3
+          },
+          {
+            "exerciseIndex": 1,
+            "round": 1
+          },
+          {
+            "exerciseIndex": 0,
+            "round": 1
+          },
+          {
+            "exerciseIndex": 3,
+            "round": 1
+          },
+          {
+            "exerciseIndex": 1,
+            "round": 3
+          },
+          {
+            "exerciseIndex": 1,
+            "round": 2
+          }
+        ],
+        "post": [
+          "stretchDone",
+          "difficultyLogged"
+        ],
+        "pre": [
+          "warmUpDone",
+          "water"
+        ],
+        "rounds": [
+          2,
+          1,
+          3
+        ]
+      },
+      "completed": true,
+      "date": "2026-11-12T18:00:00Z",
+      "difficulty": 4,
+      "finishedAt": "2026-11-12T18:18:35Z",
+      "id": "6B0E4C8F-0F65-4C4B-9D0B-3B9C1C2B4F10",
+      "kind": "catchUp",
+      "note": "Kolena OK, plank těžký",
+      "plannedSeconds": 1140,
+      "rounds": 3,
+      "timings": [
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:03:00Z",
+          "kind": "warmUp",
+          "pausedSeconds": 0,
+          "phaseIndex": 0,
+          "plannedSeconds": 180,
+          "startedAt": "2026-11-12T18:00:00Z"
+        },
+        {
+          "endReason": "completedEarly",
+          "endedAt": "2026-11-12T18:03:05Z",
+          "exerciseID": "squat",
+          "kind": "exercise",
+          "pausedSeconds": 0,
+          "phaseIndex": 1,
+          "plannedSeconds": 40,
+          "round": 1,
+          "startedAt": "2026-11-12T18:03:00Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:03:25Z",
+          "kind": "rest",
+          "pausedSeconds": 0,
+          "phaseIndex": 2,
+          "plannedSeconds": 20,
+          "round": 1,
+          "startedAt": "2026-11-12T18:03:05Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:04:15Z",
+          "exerciseID": "push-up",
+          "kind": "exercise",
+          "pausedSeconds": 10,
+          "phaseIndex": 3,
+          "plannedSeconds": 40,
+          "round": 1,
+          "startedAt": "2026-11-12T18:03:25Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:04:35Z",
+          "kind": "rest",
+          "pausedSeconds": 0,
+          "phaseIndex": 4,
+          "plannedSeconds": 20,
+          "round": 1,
+          "startedAt": "2026-11-12T18:04:15Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:05:15Z",
+          "exerciseID": "bent-over-row",
+          "kind": "exercise",
+          "pausedSeconds": 0,
+          "phaseIndex": 5,
+          "plannedSeconds": 40,
+          "round": 1,
+          "startedAt": "2026-11-12T18:04:35Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:05:35Z",
+          "kind": "rest",
+          "pausedSeconds": 0,
+          "phaseIndex": 6,
+          "plannedSeconds": 20,
+          "round": 1,
+          "startedAt": "2026-11-12T18:05:15Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:06:15Z",
+          "exerciseID": "plank",
+          "kind": "exercise",
+          "pausedSeconds": 0,
+          "phaseIndex": 7,
+          "plannedSeconds": 40,
+          "round": 1,
+          "startedAt": "2026-11-12T18:05:35Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:07:45Z",
+          "kind": "roundRest",
+          "pausedSeconds": 0,
+          "phaseIndex": 8,
+          "plannedSeconds": 90,
+          "round": 1,
+          "startedAt": "2026-11-12T18:06:15Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:08:25Z",
+          "exerciseID": "squat",
+          "kind": "exercise",
+          "pausedSeconds": 0,
+          "phaseIndex": 9,
+          "plannedSeconds": 40,
+          "round": 2,
+          "startedAt": "2026-11-12T18:07:45Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:08:45Z",
+          "kind": "rest",
+          "pausedSeconds": 0,
+          "phaseIndex": 10,
+          "plannedSeconds": 20,
+          "round": 2,
+          "startedAt": "2026-11-12T18:08:25Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:09:25Z",
+          "exerciseID": "push-up",
+          "kind": "exercise",
+          "pausedSeconds": 0,
+          "phaseIndex": 11,
+          "plannedSeconds": 40,
+          "round": 2,
+          "startedAt": "2026-11-12T18:08:45Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:09:45Z",
+          "kind": "rest",
+          "pausedSeconds": 0,
+          "phaseIndex": 12,
+          "plannedSeconds": 20,
+          "round": 2,
+          "startedAt": "2026-11-12T18:09:25Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:10:25Z",
+          "exerciseID": "bent-over-row",
+          "kind": "exercise",
+          "pausedSeconds": 0,
+          "phaseIndex": 13,
+          "plannedSeconds": 40,
+          "round": 2,
+          "startedAt": "2026-11-12T18:09:45Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:10:45Z",
+          "kind": "rest",
+          "pausedSeconds": 0,
+          "phaseIndex": 14,
+          "plannedSeconds": 20,
+          "round": 2,
+          "startedAt": "2026-11-12T18:10:25Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:11:25Z",
+          "exerciseID": "plank",
+          "kind": "exercise",
+          "pausedSeconds": 0,
+          "phaseIndex": 15,
+          "plannedSeconds": 40,
+          "round": 2,
+          "startedAt": "2026-11-12T18:10:45Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:12:55Z",
+          "kind": "roundRest",
+          "pausedSeconds": 0,
+          "phaseIndex": 16,
+          "plannedSeconds": 90,
+          "round": 2,
+          "startedAt": "2026-11-12T18:11:25Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:13:35Z",
+          "exerciseID": "squat",
+          "kind": "exercise",
+          "pausedSeconds": 0,
+          "phaseIndex": 17,
+          "plannedSeconds": 40,
+          "round": 3,
+          "startedAt": "2026-11-12T18:12:55Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:13:55Z",
+          "kind": "rest",
+          "pausedSeconds": 0,
+          "phaseIndex": 18,
+          "plannedSeconds": 20,
+          "round": 3,
+          "startedAt": "2026-11-12T18:13:35Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:14:35Z",
+          "exerciseID": "push-up",
+          "kind": "exercise",
+          "pausedSeconds": 0,
+          "phaseIndex": 19,
+          "plannedSeconds": 40,
+          "round": 3,
+          "startedAt": "2026-11-12T18:13:55Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:14:55Z",
+          "kind": "rest",
+          "pausedSeconds": 0,
+          "phaseIndex": 20,
+          "plannedSeconds": 20,
+          "round": 3,
+          "startedAt": "2026-11-12T18:14:35Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:15:35Z",
+          "exerciseID": "bent-over-row",
+          "kind": "exercise",
+          "pausedSeconds": 0,
+          "phaseIndex": 21,
+          "plannedSeconds": 40,
+          "round": 3,
+          "startedAt": "2026-11-12T18:14:55Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:15:55Z",
+          "kind": "rest",
+          "pausedSeconds": 0,
+          "phaseIndex": 22,
+          "plannedSeconds": 20,
+          "round": 3,
+          "startedAt": "2026-11-12T18:15:35Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:16:35Z",
+          "exerciseID": "plank",
+          "kind": "exercise",
+          "pausedSeconds": 0,
+          "phaseIndex": 23,
+          "plannedSeconds": 40,
+          "round": 3,
+          "startedAt": "2026-11-12T18:15:55Z"
+        },
+        {
+          "endReason": "completed",
+          "endedAt": "2026-11-12T18:18:35Z",
+          "kind": "stretch",
+          "pausedSeconds": 0,
+          "phaseIndex": 24,
+          "plannedSeconds": 120,
+          "startedAt": "2026-11-12T18:16:35Z"
+        }
+      ],
+      "weight": 5,
+      "workout": {
+        "defaultIntervals": {
+          "restSeconds": 20,
+          "roundRestSeconds": 90,
+          "rounds": 3,
+          "stretchSeconds": 120,
+          "warmUpSeconds": 180,
+          "workSeconds": 40
+        },
+        "exercises": [
+          {
+            "equipment": "dumbbells",
+            "id": "squat",
+            "name": "Dřepy s činkami",
+            "perSide": false,
+            "switchesSideMidway": false,
+            "target": {
+              "reps": {
+                "max": 15,
+                "min": 12
+              }
+            },
+            "techniqueTip": "Váha na patách, kolena ve směru špiček, záda rovná."
+          },
+          {
+            "equipment": "bodyweight",
+            "id": "push-up",
+            "name": "Kliky",
+            "perSide": false,
+            "switchesSideMidway": false,
+            "target": {
+              "reps": {
+                "max": 12,
+                "min": 8
+              }
+            },
+            "techniqueTip": "Tělo drž v jedné linii, lokty asi čtyřicet pět stupňů od těla."
+          },
+          {
+            "equipment": "dumbbells",
+            "id": "bent-over-row",
+            "name": "Veslování s činkou v předklonu",
+            "perSide": true,
+            "switchesSideMidway": true,
+            "target": {
+              "reps": {
+                "max": 12,
+                "min": 12
+              }
+            },
+            "techniqueTip": "Záda rovná, táhni loket podél těla směrem k boku."
+          },
+          {
+            "equipment": "bodyweight",
+            "id": "plank",
+            "name": "Plank",
+            "perSide": false,
+            "switchesSideMidway": false,
+            "target": {
+              "time": {
+                "maxSeconds": 45,
+                "minSeconds": 30
+              }
+            },
+            "techniqueTip": "Zpevni břicho i hýždě a nepropadej se v bedrech."
+          }
+        ],
+        "id": "A",
+        "name": "Trénink A"
+      },
+      "workoutID": "A"
+    },
+    "updatedAt": "2026-11-12T20:00:00Z",
+    "version": 1
+  },
+  "detail": "record version does not match",
+  "status": 409,
+  "title": "Record version conflict",
+  "type": "about:blank"
+}
