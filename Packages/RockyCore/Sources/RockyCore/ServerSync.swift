@@ -134,7 +134,12 @@ public struct SyncState: Codable, Sendable, Equatable {
     /// A record was created or changed locally.
     public mutating func noteLocalUpsert(_ kind: SyncRecordKind, _ key: String) {
         let id = Self.recordID(kind, key)
-        guard !tombstones.contains(id) else { return }
+        if tombstones.contains(id) {
+            // Sessions are never resurrected; a postponement for the same day (or the profile) may
+            // be created again → revive the tombstone (If-Match: tombstone version, SPEC §5).
+            guard kind != .session else { return }
+            tombstones.remove(id)
+        }
         outbox.removeAll { $0.recordID == id }
         outbox.append(SyncOp(op: .upsert, kind: kind, key: key))
     }

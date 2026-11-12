@@ -16,6 +16,16 @@ enum AppConstants {
         return Int(args[i + 1])
     }
 
+    /// Cached server catalog, next to the data file.
+    static func catalogFileURL() -> URL {
+        dataFileURL().deletingLastPathComponent().appendingPathComponent(isUITesting ? "uitest-catalog.json" : "catalog.json")
+    }
+
+    /// Server sync state (iPhone only), next to the data file.
+    static func syncStateFileURL() -> URL {
+        dataFileURL().deletingLastPathComponent().appendingPathComponent(isUITesting ? "uitest-sync-state.json" : "sync-state.json")
+    }
+
     /// Local JSON file in the App Group container (falls back to Application Support).
     static func dataFileURL() -> URL {
         let fm = FileManager.default

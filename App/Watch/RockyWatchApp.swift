@@ -12,7 +12,8 @@ struct RockyWatchApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
-        let store = TrainingStore(persistence: JSONFilePersistenceStore(fileURL: AppConstants.dataFileURL()))
+        let store = TrainingStore(persistence: JSONFilePersistenceStore(fileURL: AppConstants.dataFileURL()),
+                                  catalogURL: AppConstants.catalogFileURL())
         let sync = WatchSyncService()
         let health = WorkoutSessionService()
         // Voice on the watch is optional (Settings → "Hlas i z hodinek"); haptics are the default.
@@ -29,6 +30,7 @@ struct RockyWatchApp: App {
             Task { await health.end(at: date, save: true) }
         }
 
+        workout.catalogProvider = { [weak store] in store?.catalog ?? .builtIn }
         // Complication shows today's workout / debt: refresh it after every local change.
         store.onChange = { _ in WidgetCenter.shared.reloadAllTimelines() }
 
@@ -58,6 +60,9 @@ struct RockyWatchApp: App {
                 workout?.otherDeviceDiscarded(sessionID: id)
             case .sessionDiscarded:
                 break
+            case let .catalogChanged(catalog):
+                // Applied only if valid and not older than the watch's own (SERVER-SPEC §7).
+                store?.applyCatalog(catalog)
             case let .settingsChanged(settings):
                 store?.updateSettings(settings)
                 workout?.apply(settings: settings, speechEnabled: settings.watchSoundEnabled && settings.voiceEnabled)

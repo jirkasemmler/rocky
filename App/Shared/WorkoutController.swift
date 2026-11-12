@@ -30,6 +30,8 @@ final class WorkoutController {
     @ObservationIgnored private var runner: WorkoutRunner?
     @ObservationIgnored private var tickTask: Task<Void, Never>?
     @ObservationIgnored private var cueConfig = VoiceCueConfig()
+    /// Active catalog of this device (workouts for remote starts without a definition, cue texts).
+    @ObservationIgnored var catalogProvider: () -> Catalog = { .builtIn }
     @ObservationIgnored private var rockyLinesEnabled = true
     @ObservationIgnored private var address = ""
     @ObservationIgnored let speech: SpeechSpeaking?
@@ -100,12 +102,17 @@ final class WorkoutController {
 
     // MARK: Lifecycle
 
+    /// - Parameter definition: exact workout to run; nil = the active catalog's workout `workoutID`.
     func start(workoutID: WorkoutID, intervals: IntervalSettings, roundsOverride: Int?, kind: SessionKind,
                weight: DumbbellWeight, pre: Set<Checklist.PreItem>, sessionID: UUID = UUID(), startedAt: Date? = nil,
-               broadcast: Bool = true) {
+               broadcast: Bool = true, definition: Workout? = nil) {
         stopTicking()
-        let plan = WorkoutPlan(workout: WorkoutLibrary.workout(workoutID), intervals: intervals, roundsOverride: roundsOverride)
+        let catalog = catalogProvider()
+        let workout = definition ?? catalog.workout(workoutID)
+        let plan = WorkoutPlan(workout: workout, intervals: intervals, roundsOverride: roundsOverride)
         var config = cueConfig
+        config.warmUpDescription = catalog.warmUpDescription
+        config.stretchDescription = catalog.stretchDescription
         config.rockyLines = rockyLinesConfig(sessionID: sessionID, kind: kind, roundsOverride: roundsOverride)
         let runner = WorkoutRunner(plan: plan, cueConfig: config, checklist: Checklist(pre: pre))
         self.plan = plan
@@ -122,7 +129,8 @@ final class WorkoutController {
         onStarted?(actualStart, broadcast)
         if broadcast {
             sync?.send(.workoutStarted(sessionID: sessionID, workoutID: workoutID, intervals: plan.intervals,
-                                       rounds: plan.rounds, kind: kind, startedAt: actualStart, origin: origin))
+                                       rounds: plan.rounds, kind: kind, startedAt: actualStart, origin: origin,
+                                       workout: plan.workout))
         }
         handle(output)
         startTicking()
@@ -155,7 +163,8 @@ final class WorkoutController {
     func rebroadcastStart() -> Bool {
         guard stage == .running, let plan, let startedAt = runner?.engine.startedAt else { return false }
         sync?.send(.workoutStarted(sessionID: sessionID, workoutID: plan.workout.id, intervals: plan.intervals,
-                                   rounds: plan.rounds, kind: kind, startedAt: startedAt, origin: origin))
+                                   rounds: plan.rounds, kind: kind, startedAt: startedAt, origin: origin,
+                                   workout: plan.workout))
         return true
     }
 
@@ -186,7 +195,7 @@ final class WorkoutController {
     /// Mirrors the other device (start / pause / skip / back / abort).
     func handleRemote(_ message: SyncMessage) {
         switch message {
-        case let .workoutStarted(id, workoutID, intervals, rounds, kind, startedAt, from) where from != origin:
+        case let .workoutStarted(id, workoutID, intervals, rounds, kind, startedAt, from, definition) where from != origin:
             // Only when idle (never over a running workout or an unsaved summary), and never the
             // same session again: the phone re-sends the start, and a late duplicate must not
             // restart a workout that already ended here.
@@ -195,7 +204,7 @@ final class WorkoutController {
             // (shortened version). Passing it unconditionally made every mirrored workout "shortened".
             let override = rounds == intervals.rounds ? nil : rounds
             start(workoutID: workoutID, intervals: intervals, roundsOverride: override, kind: kind, weight: weight,
-                  pre: [], sessionID: id, startedAt: startedAt, broadcast: false)
+                  pre: [], sessionID: id, startedAt: startedAt, broadcast: false, definition: definition)
         case let .command(id, command, at, from) where from != origin && id == sessionID:
             guard let runner, stage == .running else { return }
             handle(runner.apply(command, at: at))

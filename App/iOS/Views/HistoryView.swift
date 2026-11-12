@@ -82,6 +82,15 @@ struct SessionRow: View {
 
 struct SessionDetailView: View {
     let session: Session
+    @Environment(TrainingStore.self) private var store
+
+    /// The definition the session ran with; older sessions (built before it was stored) ran
+    /// with the built-in library (SERVER-SPEC §4.2).
+    private var workoutUsed: Workout { session.workout ?? WorkoutLibrary.workout(session.workoutID) }
+
+    private func exerciseName(_ id: String) -> String {
+        workoutUsed.exercises.first { $0.id == id }?.name ?? store.exercise(id: id)?.name ?? id
+    }
 
     var body: some View {
         let summary = TimingStats.summarize(session)
@@ -108,7 +117,7 @@ struct SessionDetailView: View {
             Section("Fáze") {
                 ForEach(Array(session.timings.enumerated()), id: \.offset) { _, t in
                     HStack {
-                        Text(t.exerciseID.flatMap { WorkoutLibrary.exercise(id: $0)?.name } ?? t.kind.label)
+                        Text(t.exerciseID.map(exerciseName) ?? t.kind.label)
                         Spacer()
                         Text("\(Int(t.actualSeconds.rounded())) / \(Int(t.plannedSeconds)) s")
                             .monospacedDigit()
@@ -119,7 +128,7 @@ struct SessionDetailView: View {
             }
             Section("Checklist") {
                 NavigationLink("Zobrazit") {
-                    ChecklistView(checklist: session.checklist, workout: WorkoutLibrary.workout(session.workoutID),
+                    ChecklistView(checklist: session.checklist, workout: workoutUsed,
                                   rounds: session.rounds)
                         .navigationTitle("Checklist")
                 }

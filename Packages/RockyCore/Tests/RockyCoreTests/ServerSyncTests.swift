@@ -174,3 +174,16 @@ final class ServerSyncTests: XCTestCase {
         XCTAssertEqual(s.workout?.exercises.count, 4)
     }
 }
+
+final class ServerSyncRevivalTests: XCTestCase {
+    func testPostponementCanBeRecreatedAfterDelete() {
+        var state = SyncState()
+        state.noteLocalDelete(.postponement, "2026-11-13")
+        state.outbox.removeAll()
+        state.knownVersions["postponement/2026-11-13"] = 2 // tombstone version after the ack
+        state.noteLocalUpsert(.postponement, "2026-11-13")
+        XCTAssertEqual(state.outbox, [SyncOp(op: .upsert, kind: .postponement, key: "2026-11-13")])
+        XCTAssertFalse(state.isTombstoned(.postponement, "2026-11-13"))
+        XCTAssertEqual(state.knownVersions["postponement/2026-11-13"], 2, "pushed with If-Match: 2 → revival")
+    }
+}

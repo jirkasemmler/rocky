@@ -15,7 +15,7 @@ struct WorkoutPreviewView: View {
     @State private var pre: Set<Checklist.PreItem> = []
     @State private var didLoad = false
 
-    private var definition: Workout { WorkoutLibrary.workout(workoutID) }
+    private var definition: Workout { store.workout(workoutID) }
     private var plan: WorkoutPlan { WorkoutPlan(workout: definition, intervals: intervals, roundsOverride: roundsOverride) }
 
     var body: some View {
@@ -26,7 +26,7 @@ struct WorkoutPreviewView: View {
             }
 
             Section("Rozcvička") {
-                Text(WorkoutLibrary.warmUpDescription).font(.subheadline)
+                Text(store.catalog.warmUpDescription).font(.subheadline)
             }
 
             Section("Cviky") {
@@ -83,7 +83,7 @@ struct WorkoutPreviewView: View {
             Section {
                 Button {
                     workout.start(workoutID: workoutID, intervals: intervals, roundsOverride: roundsOverride, kind: kind,
-                                  weight: weight, pre: pre)
+                                  weight: weight, pre: pre, definition: definition)
                 } label: {
                     Label("Spustit", systemImage: "play.fill")
                         .font(.title2.bold())

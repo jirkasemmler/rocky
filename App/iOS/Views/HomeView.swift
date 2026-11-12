@@ -76,7 +76,7 @@ struct HomeView: View {
                 Text(Format.dueTitle(due))
                     .font(.largeTitle.bold())
                 let rounds = due.roundsOverride ?? store.settings.intervals.rounds
-                let plan = WorkoutPlan(workout: WorkoutLibrary.workout(due.workoutID), intervals: store.settings.intervals,
+                let plan = WorkoutPlan(workout: store.workout(due.workoutID), intervals: store.settings.intervals,
                                        roundsOverride: due.roundsOverride)
                 Text("\(Format.rounds(rounds)) · cca \(Format.minutes(plan.plannedDuration))\(due.isShortened ? " · zkrácená verze" : "")")
                     .foregroundStyle(.secondary)

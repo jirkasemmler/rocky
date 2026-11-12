@@ -30,23 +30,28 @@ final class WatchSyncService: NSObject, WatchSyncing {
 
     /// Messages sent before the WCSession finished activating (e.g. settings at app launch).
     private var pending: [SyncMessage] = []
+    /// Latest application context sent: `settings` and `catalog` slots.
+    private var context: [String: Any] = [:]
 
     func send(_ message: SyncMessage) {
         guard let session else { return }
         guard session.activationState == .activated else {
             // Live commands are only useful now; durable data waits for the activation.
             switch message {
-            case .sessionSaved, .sessionDiscarded, .settingsChanged: pending.append(message)
+            case .sessionSaved, .sessionDiscarded, .settingsChanged, .catalogChanged: pending.append(message)
             case .workoutStarted, .command: break
             }
             return
         }
         guard let info = try? message.userInfo() else { return }
         switch message {
-        case .settingsChanged:
-            // Latest wins: the application context only keeps the newest value, so a quick A→B
-            // change can never end with the older A on the other device.
-            try? session.updateApplicationContext(info)
+        case .settingsChanged, .catalogChanged:
+            // Latest wins: the application context only keeps the newest dict, so a quick A→B
+            // change can never end with the older A on the other device. Settings and catalog
+            // share the one context under separate keys.
+            let slot = if case .catalogChanged = message { "catalog" } else { "settings" }
+            if let payload = info[SyncMessage.payloadKey] { context[slot] = payload }
+            try? session.updateApplicationContext(context)
         case .sessionSaved, .sessionDiscarded:
             // Durable, queued delivery (works when the other side is away)...
             session.transferUserInfo(info)
@@ -85,7 +90,9 @@ extension WatchSyncService: WCSessionDelegate {
     }
 
     nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
-        deliver(applicationContext)
+        for value in applicationContext.values {
+            deliver([SyncMessage.payloadKey: value])
+        }
     }
 
     #if os(iOS)

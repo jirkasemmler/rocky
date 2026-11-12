@@ -5,6 +5,7 @@ import RockyCore
 struct RockyApp: App {
     @State private var store: TrainingStore
     @State private var workout: WorkoutController
+    @State private var server: ServerSyncService
     private let sync: WatchSyncService
     private let notifications: NotificationScheduling
     @Environment(\.scenePhase) private var scenePhase
@@ -19,12 +20,19 @@ struct RockyApp: App {
                 try? persistence.save(TrainingData(planStart: start))
             }
         }
-        let store = TrainingStore(persistence: persistence)
+        if AppConstants.isUITesting {
+            try? FileManager.default.removeItem(at: AppConstants.catalogFileURL())
+            try? FileManager.default.removeItem(at: AppConstants.syncStateFileURL())
+        }
+        let store = TrainingStore(persistence: persistence, catalogURL: AppConstants.catalogFileURL(),
+                                  syncStateURL: AppConstants.syncStateFileURL())
+        let server = ServerSyncService(store: store)
         let sync = WatchSyncService()
         let audio = AudioSessionController()
         let workout = WorkoutController(origin: .phone, speech: SpeechService(audio: audio), haptics: PhoneHapticsService(),
                                         audio: audio, sync: sync)
         workout.apply(settings: store.settings)
+        workout.catalogProvider = { [weak store] in store?.catalog ?? .builtIn }
         let notifications = NotificationService()
         let launcher = WatchWorkoutLauncher()
         workout.onStarted = { [weak workout, weak sync] _, local in
@@ -46,10 +54,14 @@ struct RockyApp: App {
             }
         }
 
-        store.onChange = { [weak store] _ in
+        store.onChange = { [weak store, weak server] _ in
             guard let store else { return }
             let reminders = store.upcomingReminders()
             Task { await notifications.reschedule(reminders) }
+            server?.scheduleSync()
+        }
+        store.onCatalogChange = { [weak sync] catalog in
+            sync?.send(.catalogChanged(catalog))
         }
         sync.onMessage = { [weak store, weak workout] message in
             switch message {
@@ -68,6 +80,7 @@ struct RockyApp: App {
 
         _store = State(initialValue: store)
         _workout = State(initialValue: workout)
+        _server = State(initialValue: server)
         self.sync = sync
         self.notifications = notifications
     }
@@ -77,6 +90,7 @@ struct RockyApp: App {
             RootView()
                 .environment(store)
                 .environment(workout)
+                .environment(server)
                 .tint(.green)
                 .preferredColorScheme(.dark)
                 .task {
@@ -84,6 +98,8 @@ struct RockyApp: App {
                     _ = await notifications.requestAuthorization()
                     await notifications.reschedule(store.upcomingReminders())
                     sync.send(.settingsChanged(store.settings))
+                    if store.catalog.revision > 0 { sync.send(.catalogChanged(store.catalog)) }
+                    await server.syncNow()
                 }
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }
@@ -91,6 +107,7 @@ struct RockyApp: App {
                     workout.tick()
                     let reminders = store.upcomingReminders()
                     Task { await notifications.reschedule(reminders) }
+                    server.syncIfStale()
                 }
                 .onChange(of: store.settings) { _, settings in
                     workout.apply(settings: settings)

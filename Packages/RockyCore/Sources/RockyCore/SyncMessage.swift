@@ -25,6 +25,8 @@ public enum SyncMessage: Codable, Sendable, Equatable {
     case sessionDiscarded(sessionID: UUID, origin: Origin)
     /// Settings changed on the phone (watch mirrors relevant parts).
     case settingsChanged(Settings)
+    /// The phone's active exercise catalog (from the server), without images (SERVER-SPEC §7).
+    case catalogChanged(Catalog)
 
     public func encoded() throws -> Data {
         try JSONFilePersistenceStore.makeEncoder().encode(self)

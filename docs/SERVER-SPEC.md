@@ -132,6 +132,11 @@ tokens only for the admin login. Wrong scope → 403.
 | `DELETE /records/{kind}/{key}` | device | `If-Match` required (or `*` if the client never saw a version); creates a tombstone even for unknown keys; idempotent on an existing tombstone (200) |
 | `GET /changes?since=<seq>&limit=500` | device | `{items: [Record], nextSince, hasMore}`; `Record = {kind, key, version, changeSeq, deleted, updatedAt, payload|null}`; items ordered by `changeSeq`; `nextSince` = last item's `changeSeq`, or `since` when empty |
 
+**Tombstone revival:** a `PUT` on a tombstone with `If-Match` equal to the tombstone's version
+revives the record (version + 1); any other precondition on a tombstone → 410. Needed because
+postponements are keyed by day (cancel, then postpone the same day again); session IDs are unique
+so sessions are never revived in practice.
+
 Errors: RFC 9457 problem JSON. Body limit 4 MB. Tombstones are kept forever (tiny).
 
 Admin JSON endpoints live under `/admin/api/…` and use the admin **cookie** session (not bearer):
@@ -158,7 +163,9 @@ local **tombstone set** (deleted session IDs / days), `catalogRevision`. Token i
    the outbox is skipped (local op pending, the push resolves it).
 4. **Deletes:** deleting a session/postponement locally removes it, adds it to the tombstone set
    and enqueues `delete`. A session arriving from the watch whose ID is in the tombstone set is
-   ignored (no resurrection). Tombstones win over updates everywhere.
+   ignored (no resurrection). Tombstones win over updates everywhere, except that a postponement
+   (or the profile) re-created locally clears its local tombstone and is pushed with
+   `If-Match: <tombstone version>` (revival, §5).
 5. **Triggers:** app start, foreground (≤ every 5 min), after every save/delete/postpone,
    Settings → "Synchronizovat teď". Never blocks the UI; status shown in Settings.
 6. **Catalog:** `GET /catalog` with `If-None-Match`; validate with `Catalog.validate()`; save as

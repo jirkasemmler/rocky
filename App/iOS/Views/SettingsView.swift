@@ -100,8 +100,10 @@ struct SettingsView: View {
                 Toggle("Hlas i z hodinek", isOn: $draft.watchSoundEnabled)
             }
 
+            ServerSettingsSection()
+
             Section("Soukromí") {
-                Text("Všechna data zůstávají v tomto zařízení (a v hodinkách). Žádný účet, žádná telemetrie.")
+                Text("Data zůstávají v tomto zařízení (a v hodinkách), případně na tvém vlastním serveru. Žádný účet, žádná telemetrie.")
                     .font(.footnote)
             }
         }
