@@ -53,13 +53,13 @@ Apple Watch (WatchConnectivity only, as today; gets the catalog from the phone)
 ## 3. Data model
 
 All timestamps UTC ISO 8601 with milliseconds. IDs: exercises use stable slugs (`squat`,
-`push_up`, … as in `WorkoutLibrary.swift`); sessions use the app's UUID.
+`push-up`, … as in `WorkoutLibrary.swift`); sessions use the app's UUID.
 
 ### 3.1 Exercise
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | slug `[a-z0-9_]{2,40}` | immutable; never reused |
+| `id` | slug `[a-z0-9-]{2,40}` | immutable; never reused |
 | `name` | string 1–60 | Czech display name, e.g. "Dřepy s činkami" |
 | `techniqueTip` | string 0–200 | short tip, may be spoken (D-08) |
 | `instructions` | string 0–2000 | **new**: longer Czech how-to (steps), shown with the image |

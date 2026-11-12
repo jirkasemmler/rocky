@@ -7,6 +7,7 @@ struct RunningWorkoutView: View {
     @Environment(WorkoutController.self) private var workout
     @State private var confirmEnd = false
     @State private var showChecklist = false
+    @State private var imageExercise: Exercise?
 
     var body: some View {
         ZStack {
@@ -29,6 +30,12 @@ struct RunningWorkoutView: View {
         .sheet(isPresented: $showChecklist) {
             NavigationStack { LiveChecklistView() }
         }
+        .sheet(item: $imageExercise) { exercise in
+            NavigationStack {
+                ExerciseDetailView(exercise: exercise)
+                    .toolbar { Button("Zavřít") { imageExercise = nil } }
+            }
+        }
     }
 
     private func content(_ s: EngineSnapshot) -> some View {
@@ -44,9 +51,20 @@ struct RunningWorkoutView: View {
                 .minimumScaleFactor(0.5)
 
             if let exercise = s.phase?.exercise {
-                Text(exercise.targetLabel)
-                    .font(.system(size: 28, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 12) {
+                    ExerciseImageView(exercise: exercise, height: 56)
+                        .frame(width: 56)
+                    Text(exercise.targetLabel)
+                        .font(.system(size: 28, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.secondary)
+                }
+                .onTapGesture { imageExercise = exercise }
+            } else if s.phase?.kind.isRest == true, let next = s.nextExercise {
+                // During rests: how to do the next exercise (not in the warm-up, where the big
+                // timer matters more).
+                ExerciseImageView(exercise: next, height: 150)
+                    .onTapGesture { imageExercise = next }
+                    .accessibilityIdentifier("nextExerciseImage")
             }
 
             Text(Format.clock(s.remainingInPhase))

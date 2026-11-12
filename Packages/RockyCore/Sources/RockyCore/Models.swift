@@ -42,6 +42,11 @@ public struct Exercise: Codable, Sendable, Equatable, Identifiable, Hashable {
     /// True when the user does one side first, then the other: the voice says
     /// "změna strany" halfway through the work interval. False for alternating moves.
     public var switchesSideMidway: Bool
+    /// Longer Czech how-to (steps), shown next to the image. Nil = only `techniqueTip`.
+    public var instructions: String?
+    /// Content hash (sha256) of the exercise image on the Rocky server; the app caches the bytes.
+    /// Nil = no image yet (the app shows a pictogram).
+    public var imageAssetID: String?
 
     public init(
         id: String,
@@ -50,7 +55,9 @@ public struct Exercise: Codable, Sendable, Equatable, Identifiable, Hashable {
         target: ExerciseTarget,
         equipment: Equipment,
         perSide: Bool = false,
-        switchesSideMidway: Bool? = nil
+        switchesSideMidway: Bool? = nil,
+        instructions: String? = nil,
+        imageAssetID: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -59,6 +66,8 @@ public struct Exercise: Codable, Sendable, Equatable, Identifiable, Hashable {
         self.equipment = equipment
         self.perSide = perSide
         self.switchesSideMidway = switchesSideMidway ?? perSide
+        self.instructions = instructions
+        self.imageAssetID = imageAssetID
     }
 
     /// Czech human-readable target, e.g. "12–15 opakování", "12 na stranu", "30–45 s".
@@ -91,6 +100,7 @@ public struct Exercise: Codable, Sendable, Equatable, Identifiable, Hashable {
         lhs.id == rhs.id && lhs.name == rhs.name && lhs.techniqueTip == rhs.techniqueTip
             && lhs.target == rhs.target && lhs.equipment == rhs.equipment && lhs.perSide == rhs.perSide
             && lhs.switchesSideMidway == rhs.switchesSideMidway
+            && lhs.instructions == rhs.instructions && lhs.imageAssetID == rhs.imageAssetID
     }
 
     public func hash(into hasher: inout Hasher) { hasher.combine(id) }

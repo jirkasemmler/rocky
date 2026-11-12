@@ -31,16 +31,25 @@ struct WorkoutPreviewView: View {
 
             Section("Cviky") {
                 ForEach(definition.exercises) { exercise in
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(exercise.name).font(.headline)
-                            Spacer()
-                            Text(exercise.targetLabel).foregroundStyle(.secondary)
+                    NavigationLink {
+                        ExerciseDetailView(exercise: exercise)
+                    } label: {
+                        HStack(alignment: .top, spacing: 12) {
+                            ExerciseImageView(exercise: exercise, height: 64)
+                                .frame(width: 64)
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text(exercise.name).font(.headline)
+                                    Spacer()
+                                    Text(exercise.targetLabel).foregroundStyle(.secondary)
+                                }
+                                Text(exercise.techniqueTip).font(.footnote).foregroundStyle(.secondary)
+                                Text(exercise.equipment.label).font(.caption).foregroundStyle(.tertiary)
+                            }
                         }
-                        Text(exercise.techniqueTip).font(.footnote).foregroundStyle(.secondary)
-                        Text(exercise.equipment.label).font(.caption).foregroundStyle(.tertiary)
+                        .padding(.vertical, 2)
                     }
-                    .padding(.vertical, 2)
+                    .accessibilityIdentifier("exercise-\(exercise.id)")
                 }
             }
 
