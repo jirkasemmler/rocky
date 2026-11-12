@@ -78,7 +78,8 @@ public final class WorkoutRunner {
             checklist: list,
             timings: engine.timings,
             plannedSeconds: plan.plannedDuration,
-            finishedAt: engine.endedAt
+            finishedAt: engine.endedAt,
+            workout: plan.workout
         )
     }
 

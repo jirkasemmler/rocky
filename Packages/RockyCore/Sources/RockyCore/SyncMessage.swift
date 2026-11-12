@@ -13,8 +13,10 @@ public enum SyncMessage: Codable, Sendable, Equatable {
     public enum Origin: String, Codable, Sendable { case phone, watch }
 
     /// A workout was started on one device; the other should start the same plan at `startedAt`.
+    /// `workout` = the exact definition the starting device uses (catalogs may differ between
+    /// the devices); nil from older builds → the receiver uses its own catalog.
     case workoutStarted(sessionID: UUID, workoutID: WorkoutID, intervals: IntervalSettings, rounds: Int,
-                        kind: SessionKind, startedAt: Date, origin: Origin)
+                        kind: SessionKind, startedAt: Date, origin: Origin, workout: Workout? = nil)
     case command(sessionID: UUID, command: Command, at: Date, origin: Origin)
     /// A finished (or aborted) session record to merge into local history.
     case sessionSaved(Session, origin: Origin)

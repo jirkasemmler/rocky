@@ -1,0 +1,35 @@
+{
+  "planStart" : "2026-11-01T23:00:00Z",
+  "settings" : {
+    "address" : "",
+    "escalateOnPlannedDays" : false,
+    "intervals" : {
+      "restSeconds" : 20,
+      "roundRestSeconds" : 90,
+      "rounds" : 3,
+      "stretchSeconds" : 120,
+      "warmUpSeconds" : 180,
+      "workSeconds" : 40
+    },
+    "latestEscalation" : {
+      "hour" : 22,
+      "minute" : 30
+    },
+    "reminderTime" : {
+      "hour" : 19,
+      "minute" : 0
+    },
+    "rockyLinesEnabled" : true,
+    "speechRate" : 0.5,
+    "techniqueTipsEnabled" : true,
+    "trainingDays" : [
+      2,
+      6,
+      4
+    ],
+    "vibrationEnabled" : true,
+    "voiceEnabled" : true,
+    "volume" : 1,
+    "watchSoundEnabled" : false
+  }
+}

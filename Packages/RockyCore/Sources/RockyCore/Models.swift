@@ -47,6 +47,9 @@ public struct Exercise: Codable, Sendable, Equatable, Identifiable, Hashable {
     /// Content hash (sha256) of the exercise image on the Rocky server; the app caches the bytes.
     /// Nil = no image yet (the app shows a pictogram).
     public var imageAssetID: String?
+    /// Archived on the server: not offered in workouts any more, kept for history.
+    public var archived: Bool?
+    public var isArchived: Bool { archived ?? false }
 
     public init(
         id: String,
@@ -57,7 +60,8 @@ public struct Exercise: Codable, Sendable, Equatable, Identifiable, Hashable {
         perSide: Bool = false,
         switchesSideMidway: Bool? = nil,
         instructions: String? = nil,
-        imageAssetID: String? = nil
+        imageAssetID: String? = nil,
+        archived: Bool? = nil
     ) {
         self.id = id
         self.name = name
@@ -68,6 +72,7 @@ public struct Exercise: Codable, Sendable, Equatable, Identifiable, Hashable {
         self.switchesSideMidway = switchesSideMidway ?? perSide
         self.instructions = instructions
         self.imageAssetID = imageAssetID
+        self.archived = archived
     }
 
     /// Czech human-readable target, e.g. "12–15 opakování", "12 na stranu", "30–45 s".
@@ -101,6 +106,7 @@ public struct Exercise: Codable, Sendable, Equatable, Identifiable, Hashable {
             && lhs.target == rhs.target && lhs.equipment == rhs.equipment && lhs.perSide == rhs.perSide
             && lhs.switchesSideMidway == rhs.switchesSideMidway
             && lhs.instructions == rhs.instructions && lhs.imageAssetID == rhs.imageAssetID
+            && lhs.archived == rhs.archived
     }
 
     public func hash(into hasher: inout Hasher) { hasher.combine(id) }
@@ -411,6 +417,9 @@ public struct Session: Codable, Sendable, Equatable, Identifiable {
     public var timings: [PhaseTiming]
     public var plannedSeconds: TimeInterval
     public var finishedAt: Date?
+    /// The exact workout definition this session ran with (catalog may change later; history
+    /// and checklist rows render from this). Nil for sessions saved by older builds.
+    public var workout: Workout?
 
     public init(
         id: UUID = UUID(),
@@ -425,7 +434,8 @@ public struct Session: Codable, Sendable, Equatable, Identifiable {
         checklist: Checklist = Checklist(),
         timings: [PhaseTiming] = [],
         plannedSeconds: TimeInterval = 0,
-        finishedAt: Date? = nil
+        finishedAt: Date? = nil,
+        workout: Workout? = nil
     ) {
         self.id = id
         self.date = date
@@ -440,6 +450,7 @@ public struct Session: Codable, Sendable, Equatable, Identifiable {
         self.timings = timings
         self.plannedSeconds = plannedSeconds
         self.finishedAt = finishedAt
+        self.workout = workout
     }
 
     /// Actual wall-clock duration: first phase start to last phase end (or finishedAt).
@@ -614,8 +625,18 @@ public struct Postponement: Codable, Sendable, Equatable {
     /// Any instant within the postponed day.
     public var date: Date
     public var reason: PostponeReason
-    public init(date: Date, reason: PostponeReason) {
+    /// Local calendar day `YYYY-MM-DD`, fixed when the postponement was created (server key,
+    /// SERVER-SPEC §4.2). Nil for records from older builds (computed on migration).
+    public var day: String?
+    public init(date: Date, reason: PostponeReason, day: String? = nil) {
         self.date = date
         self.reason = reason
+        self.day = day
+    }
+
+    /// `YYYY-MM-DD` of `date` in the given calendar.
+    public static func dayKey(for date: Date, calendar: Calendar) -> String {
+        let c = calendar.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
     }
 }

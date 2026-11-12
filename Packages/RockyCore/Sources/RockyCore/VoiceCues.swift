@@ -70,6 +70,9 @@ public struct VoiceCueConfig: Sendable, Equatable {
 
     /// Flavour lines; `nil` = off (functional cues only).
     public var rockyLines: RockyLinesConfig?
+    /// Spoken warm-up / stretch instructions (from the active catalog).
+    public var warmUpDescription: String = WorkoutLibrary.warmUpDescription
+    public var stretchDescription: String = WorkoutLibrary.stretchDescription
 
     public init(countdownSeconds: Int = 3, announceLeadSeconds: TimeInterval = 6, techniqueTipsEnabled: Bool = true,
                 tipsOnlyFirstRound: Bool = true, tipWindowSeconds: TimeInterval = 6, rockyLines: RockyLinesConfig? = nil) {
@@ -182,7 +185,7 @@ public struct VoiceCueScheduler: Sendable {
             switch phase.kind {
             case .warmUp:
                 cues.append(VoiceCue(phaseIndex: phase.index, offset: 0, kind: .warmUpStart,
-                                     text: "Rozcvička, \(secondsPhrase(Int(d))). \(WorkoutLibrary.warmUpDescription)",
+                                     text: "Rozcvička, \(secondsPhrase(Int(d))). \(config.warmUpDescription)",
                                      haptic: .exerciseStart))
             case .exercise:
                 let name = phase.exercise?.name ?? ""
@@ -199,7 +202,7 @@ public struct VoiceCueScheduler: Sendable {
                 let afterLastRound = phase.index > 0 && phases[phase.index - 1].kind == .exercise
                 let prefix = afterLastRound ? "Konec kola \(plan.rounds). " : ""
                 cues.append(VoiceCue(phaseIndex: phase.index, offset: 0, kind: .stretchStart,
-                                     text: "\(prefix)Teď protažení. \(WorkoutLibrary.stretchDescription)", haptic: .roundEnd))
+                                     text: "\(prefix)Teď protažení. \(config.stretchDescription)", haptic: .roundEnd))
             }
 
             // 1b) Rockyho hlášky (optional), spoken right after the functional start cue.
