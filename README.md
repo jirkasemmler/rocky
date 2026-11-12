@@ -29,6 +29,7 @@ XcodeGen 2.46.0, Swift 6 language mode everywhere.
 | Watch complication (`App/WatchWidgets`, WidgetKit) | Builds and is embedded in the watch app. Not yet placed on a watch face (manual check). |
 | UI tests | `RockyUITests` (iPhone, 3 tests) and `RockyWatchUITests` (1 test) pass on iPhone 17 Pro / Apple Watch Series 11 (46 mm) simulators, iOS / watchOS 27.2. |
 | Phone ⇄ watch sync | Verified on paired simulators: start, skip, pause, end mirror in both directions within ~2–3 s; saving on one device closes the summary on the other. |
+| Rocky server (`server/`, optional) | FastAPI + SQLite + MCP + web admin per [docs/SERVER-SPEC.md](docs/SERVER-SPEC.md): 113 pytest tests; verified end to end with the app in the simulator (connect, catalog + images from the server, workout upload) and with an MCP client (agent sets an image + instructions). Docker image builds; `docker compose up` not yet verified (host Docker network pool exhausted). See [server/README.md](server/README.md). |
 | Device-only behaviour | Voice with a locked phone, ducking, wrist haptics, Apple Health record, time-sensitive notifications: **not verified yet**, see [docs/BUILD-ON-MAC.md](docs/BUILD-ON-MAC.md) §5. |
 
 ## Structure
@@ -62,6 +63,8 @@ rocky/
 │   ├── WatchWidgets/               watch face complication (WidgetKit extension)
 │   ├── UITests/, WatchUITests/     XCUITest: main flows (+ opt-in screenshot tour / sync hold)
 │   └── Assets.xcassets             placeholder app icon (tools/make-icon.swift)
+├── server/                         optional Rocky server (catalog, images, sync, MCP, web admin)
+├── tools/                          make-icon.swift, install-iphone.sh (weekly free re-signing)
 └── docs/
     ├── PRD.md                      requirements (v1.1)
     ├── PRD-original-v1.1.md        untouched read-only copy of the original PRD
