@@ -63,6 +63,14 @@ final class RockyUITests: XCTestCase {
         expect(app.staticTexts["Kolo 1/3"].waitForExistence(timeout: 2))
         expect(phase.label != "Rozcvička", phase.label)
 
+        // "Hotovo" finishes the exercise early → rest; whole-workout progress is shown.
+        expect(app.buttons["doneButton"].exists)
+        app.buttons["doneButton"].tap()
+        expect(app.staticTexts["phaseTitle"].label == "Pauza", app.staticTexts["phaseTitle"].label)
+        expect(!app.buttons["doneButton"].exists, "no Hotovo during rest")
+        expect(app.progressIndicators["overallProgress"].exists || app.otherElements["overallProgress"].exists
+               || app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Celý trénink'")).firstMatch.exists)
+
         // End early → summary.
         app.buttons["endWorkout"].tap()
         let confirm = app.buttons["Ukončit"]

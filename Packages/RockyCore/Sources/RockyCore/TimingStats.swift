@@ -7,6 +7,8 @@ public struct SessionTimingSummary: Sendable, Equatable {
     public var deviationSeconds: TimeInterval { actualSeconds - plannedSeconds }
     public var pausedSeconds: TimeInterval
     public var skippedPhases: Int
+    /// Exercises (or warm-up / stretch) finished early with "Hotovo".
+    public var finishedEarlyPhases: Int = 0
     /// Short rests between exercises.
     public var averageRestPlanned: TimeInterval?
     public var averageRestActual: TimeInterval?
@@ -60,6 +62,7 @@ public enum TimingStats {
             actualSeconds: actual,
             pausedSeconds: timings.reduce(0) { $0 + $1.pausedSeconds },
             skippedPhases: timings.filter { $0.endReason == .skipped }.count,
+            finishedEarlyPhases: timings.filter { $0.endReason == .completedEarly }.count,
             averageRestPlanned: average(rests.map(\.plannedSeconds)),
             averageRestActual: average(rests.map(\.actualSeconds)),
             averageRoundRestActual: average(roundRests.map(\.actualSeconds)),

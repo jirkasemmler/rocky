@@ -43,6 +43,8 @@ public final class WorkoutRunner {
     @discardableResult public func togglePause() -> Output { run { $0.togglePause(at: $1) } }
     @discardableResult public func skip() -> Output { run { $0.skip(at: $1) } }
     @discardableResult public func back() -> Output { run { $0.back(at: $1) } }
+    /// "Hotovo": finish the current exercise early.
+    @discardableResult public func finishEarly() -> Output { run { $0.finishEarly(at: $1) } }
     @discardableResult public func abort() -> Output { run { $0.abort(at: $1) } }
 
     /// Starts at an explicit (possibly past) time, e.g. when the other device started the workout.

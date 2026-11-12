@@ -42,6 +42,15 @@ struct WatchRunningView: View {
                 if s.status == .paused {
                     Text("PAUZA").font(.headline).foregroundStyle(.yellow)
                 }
+                ProgressView(value: workout.overallProgress)
+                    .tint(.white)
+                if workout.canFinishEarly {
+                    Button { workout.perform(.done) } label: {
+                        Label("Hotovo", systemImage: "checkmark").font(.headline)
+                    }
+                    .tint(.green)
+                    .accessibilityIdentifier("watchDone")
+                }
             }
         } else {
             ProgressView()

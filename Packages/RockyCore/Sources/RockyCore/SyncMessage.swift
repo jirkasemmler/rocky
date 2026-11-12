@@ -6,6 +6,8 @@ import Foundation
 public enum SyncMessage: Codable, Sendable, Equatable {
     public enum Command: String, Codable, Sendable {
         case pause, resume, skip, back, abort
+        /// "Hotovo": current exercise finished early.
+        case done
     }
 
     public enum Origin: String, Codable, Sendable { case phone, watch }
@@ -51,6 +53,7 @@ public extension WorkoutEngine {
         case .skip: return skip(at: date)
         case .back: return back(at: date)
         case .abort: return abort(at: date)
+        case .done: return finishEarly(at: date)
         }
     }
 }

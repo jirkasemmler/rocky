@@ -43,6 +43,9 @@ struct SummaryView: View {
                     if summary.pausedSeconds > 0 {
                         LabeledContent("Pauzy navíc", value: Format.clock(summary.pausedSeconds))
                     }
+                    if summary.finishedEarlyPhases > 0 {
+                        LabeledContent("Hotovo dřív", value: "\(summary.finishedEarlyPhases)×")
+                    }
                     if summary.skippedPhases > 0 {
                         LabeledContent("Přeskočeno", value: "\(summary.skippedPhases)×")
                     }

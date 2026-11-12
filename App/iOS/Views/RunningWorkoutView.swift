@@ -79,6 +79,7 @@ struct RunningWorkoutView: View {
 
             Spacer(minLength: 0)
             controls(s)
+            overallProgressBar(s)
         }
         .padding()
         .overlay {
@@ -98,9 +99,6 @@ struct RunningWorkoutView: View {
                     .font(.system(size: 32, weight: .bold, design: .rounded))
             }
             Spacer()
-            Text("Zbývá \(Format.clock(s.plannedRemaining))")
-                .font(.title3.monospacedDigit())
-                .foregroundStyle(.secondary)
             Button { showChecklist = true } label: {
                 Image(systemName: "checklist").font(.title)
             }
@@ -113,7 +111,43 @@ struct RunningWorkoutView: View {
         }
     }
 
+    /// Progress of the whole workout (PRD: see how far you are), with the remaining planned time.
+    private func overallProgressBar(_ s: EngineSnapshot) -> some View {
+        VStack(spacing: 6) {
+            ProgressView(value: workout.overallProgress)
+                .tint(.white)
+                .accessibilityIdentifier("overallProgress")
+            HStack {
+                Text("Celý trénink \(Int((workout.overallProgress * 100).rounded())) %")
+                Spacer()
+                Text("zbývá \(Format.clock(s.plannedRemaining))")
+            }
+            .font(.subheadline.monospacedDigit())
+            .foregroundStyle(.secondary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Celý trénink \(Int((workout.overallProgress * 100).rounded())) procent, zbývá \(Format.clock(s.plannedRemaining))")
+    }
+
     private func controls(_ s: EngineSnapshot) -> some View {
+        VStack(spacing: 12) {
+            if workout.canFinishEarly {
+                // Done faster than the interval: end this exercise now (counts as done).
+                Button { workout.perform(.done) } label: {
+                    Label("Hotovo", systemImage: "checkmark")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .frame(maxWidth: .infinity, minHeight: 80)
+                        .foregroundStyle(Color.black)
+                        .background(Color.white, in: RoundedRectangle(cornerRadius: 24))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("doneButton")
+            }
+            controlRow(s)
+        }
+    }
+
+    private func controlRow(_ s: EngineSnapshot) -> some View {
         HStack(spacing: 16) {
             BigButton(systemImage: "backward.end.fill", label: "Zpět", identifier: "backButton") { workout.perform(.back) }
             BigButton(systemImage: s.status == .paused ? "play.fill" : "pause.fill",

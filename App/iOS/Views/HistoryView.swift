@@ -112,7 +112,7 @@ struct SessionDetailView: View {
                         Spacer()
                         Text("\(Int(t.actualSeconds.rounded())) / \(Int(t.plannedSeconds)) s")
                             .monospacedDigit()
-                            .foregroundStyle(t.endReason == .completed ? Color.secondary : Color.orange)
+                            .foregroundStyle(t.endReason.isDone ? Color.secondary : Color.orange)
                     }
                     .font(.subheadline)
                 }

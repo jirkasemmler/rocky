@@ -333,6 +333,12 @@ public enum PhaseKind: String, Codable, Sendable, CaseIterable {
 
 public enum PhaseEndReason: String, Codable, Sendable {
     case completed, skipped, back, aborted
+    /// The user tapped "Hotovo": done before the interval ran out. Counts as done (checklist,
+    /// stats), unlike `skipped`.
+    case completedEarly
+
+    /// The phase was done (ran to the end or finished early by the user).
+    public var isDone: Bool { self == .completed || self == .completedEarly }
 }
 
 /// Actual measured timing of one phase (PRD 8a "Měření timingu").

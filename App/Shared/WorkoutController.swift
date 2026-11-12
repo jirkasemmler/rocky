@@ -58,6 +58,16 @@ final class WorkoutController {
 
     var isRunning: Bool { stage == .running }
     var isPaused: Bool { snapshot?.status == .paused }
+    /// "Hotovo" is offered on exercises (and warm-up / stretch), not on rests.
+    var canFinishEarly: Bool { runner?.engine.canFinishEarly ?? false }
+
+    /// Whole-workout progress 0...1 by planned time: done phases count fully (also when skipped
+    /// or finished early), the current one by its elapsed part.
+    var overallProgress: Double {
+        guard let plan, let snapshot, plan.plannedDuration > 0 else { return 0 }
+        if snapshot.status == .finished { return 1 }
+        return min(1, max(0, 1 - snapshot.plannedRemaining / plan.plannedDuration))
+    }
 
     func apply(settings: Settings, speechEnabled: Bool? = nil) {
         speech?.isEnabled = speechEnabled ?? settings.voiceEnabled
@@ -127,6 +137,7 @@ final class WorkoutController {
         case .skip: output = runner.skip()
         case .back: output = runner.back()
         case .abort: output = runner.abort()
+        case .done: output = runner.finishEarly()
         }
         if broadcast {
             sync?.send(.command(sessionID: sessionID, command: command, at: Date(), origin: origin))

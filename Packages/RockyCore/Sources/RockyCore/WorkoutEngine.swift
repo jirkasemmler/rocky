@@ -155,6 +155,29 @@ public struct WorkoutEngine: Sendable {
         return events
     }
 
+    /// Phases the user can finish early with "Hotovo" (activity phases, not rests).
+    public static let finishableKinds: Set<PhaseKind> = [.exercise, .warmUp, .stretch]
+
+    public var canFinishEarly: Bool {
+        isActive && Self.finishableKinds.contains(plan.phases[phaseIndex].kind)
+    }
+
+    /// "Hotovo": the user did the current exercise (or warm-up / stretch) faster than the
+    /// interval. Ends it now as `completedEarly` and starts the next phase (keeps paused state).
+    @discardableResult
+    public mutating func finishEarly(at now: Date) -> [EngineEvent] {
+        var events = update(at: now)
+        guard canFinishEarly else { return events }
+        let wasPaused = status == .paused
+        foldPause(at: now)
+        events += endPhase(at: now, reason: .completedEarly, nextStart: now, nextIndex: phaseIndex + 1)
+        if wasPaused, status == .running {
+            status = .paused
+            pausedAt = now
+        }
+        return events
+    }
+
     /// "Zpět o cvik": jumps to the start of the previous exercise phase. If there is no earlier
     /// exercise (e.g. during warm-up or the first exercise), restarts the current phase.
     @discardableResult
@@ -222,7 +245,7 @@ public struct WorkoutEngine: Sendable {
     /// Exercise checks for every exercise interval that ran to completion (auto-tick, PRD 8a).
     public var completedExerciseChecks: Set<Checklist.ExerciseCheck> {
         Set(timings.compactMap { t in
-            guard t.kind == .exercise, t.endReason == .completed, let round = t.round,
+            guard t.kind == .exercise, t.endReason.isDone, let round = t.round,
                   let idx = plan.phases[t.phaseIndex].exerciseIndex else { return nil }
             return Checklist.ExerciseCheck(round: round, exerciseIndex: idx)
         })
@@ -237,7 +260,7 @@ public struct WorkoutEngine: Sendable {
     }
 
     public func didComplete(_ kind: PhaseKind) -> Bool {
-        timings.contains { $0.kind == kind && $0.endReason == .completed }
+        timings.contains { $0.kind == kind && $0.endReason.isDone }
     }
 
     // MARK: Private
