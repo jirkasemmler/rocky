@@ -24,14 +24,19 @@ final class ServerE2ETests: XCTestCase {
         expect(urlField.exists, "server URL field")
         urlField.tap()
         urlField.typeText(url)
-        let tokenField = app.secureTextFields["serverToken"]
+        let tokenField = app.textFields["serverToken"]
         tokenField.tap()
-        tokenField.typeText(token)
+        tokenField.typeText(token + "\n") // also dismisses the keyboard
         app.buttons["Připojit"].tap()
+        // In case iOS still offers to save the token as a password.
+        let notNow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Not Now"]
+        if notNow.waitForExistence(timeout: 2) { notNow.tap() }
+        if app.buttons["Not Now"].exists { app.buttons["Not Now"].tap() }
 
         // Catalog from the server (revision ≥ 1) and a successful sync.
-        let revision = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'revize'")).firstMatch
-        expect(revision.waitForExistence(timeout: 20), "catalog revision from the server")
+        let revision = app.descendants(matching: .any)["catalogRevision"]
+        expect(revision.waitForExistence(timeout: 20), "catalog row")
+        expect(app.staticTexts["revize 1"].exists || revision.label.contains("revize"), revision.label)
         expect(app.buttons["syncNow"].exists)
         if let screenshotDir = env["ROCKY_SCREENSHOT_DIR"] {
             try? XCUIScreen.main.screenshot().pngRepresentation
@@ -43,8 +48,29 @@ final class ServerE2ETests: XCTestCase {
         let start = app.buttons["startToday"].exists ? app.buttons["startToday"] : app.buttons["startBonus"]
         expect(start.waitForExistence(timeout: 5))
         start.tap()
+        if let screenshotDir = env["ROCKY_SCREENSHOT_DIR"] {
+            sleep(1)
+            try? XCUIScreen.main.screenshot().pngRepresentation
+                .write(to: URL(fileURLWithPath: screenshotDir).appendingPathComponent("31-after-start-tap.png"))
+        }
         let startWorkout = app.buttons["startWorkout"]
         for _ in 0..<6 where !startWorkout.exists { app.swipeUp() }
+        expect(startWorkout.waitForExistence(timeout: 5), "preview start button")
+        if let screenshotDir = env["ROCKY_SCREENSHOT_DIR"] {
+            app.swipeDown(); app.swipeDown()
+            sleep(1)
+            try? XCUIScreen.main.screenshot().pngRepresentation
+                .write(to: URL(fileURLWithPath: screenshotDir).appendingPathComponent("32-preview-from-server.png"))
+            let squat = app.buttons["exercise-squat"]
+            if squat.exists {
+                squat.tap()
+                sleep(1)
+                try? XCUIScreen.main.screenshot().pngRepresentation
+                    .write(to: URL(fileURLWithPath: screenshotDir).appendingPathComponent("33-exercise-detail.png"))
+                app.navigationBars.buttons.firstMatch.tap()
+            }
+            for _ in 0..<6 where !startWorkout.isHittable { app.swipeUp() }
+        }
         startWorkout.tap()
         expect(app.buttons["doneButton"].waitForExistence(timeout: 5))
         app.buttons["doneButton"].tap() // warm-up done
@@ -63,9 +89,8 @@ final class ServerE2ETests: XCTestCase {
         for _ in 0..<8 where !syncNow.exists { app.swipeUp() }
         syncNow.tap()
         sleep(3)
-        let pending = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Čeká na odeslání'")).firstMatch
-        expect(!pending.exists, "outbox should be empty after sync")
-        let error = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'selhala' OR label CONTAINS 'odmítl'")).firstMatch
+        expect(!app.staticTexts["syncPending"].exists, "outbox should be empty after sync")
+        let error = app.staticTexts["syncError"]
         expect(!error.exists, error.exists ? error.label : "")
     }
 }

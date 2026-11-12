@@ -14,12 +14,15 @@ struct ServerSettingsSection: View {
             if let connected = store.syncState.serverURL, server.isConfigured {
                 LabeledContent("Server", value: connected.replacingOccurrences(of: "https://", with: ""))
                 LabeledContent("Katalog", value: store.catalog.revision == 0 ? "vestavěný" : "revize \(store.catalog.revision)")
+                    .accessibilityIdentifier("catalogRevision")
                 LabeledContent("Poslední synchronizace", value: lastSyncText)
                 if let error = store.syncState.lastError {
                     Text(error).font(.footnote).foregroundStyle(.orange)
+                        .accessibilityIdentifier("syncError")
                 }
                 if !store.syncState.outbox.isEmpty {
                     Text("Čeká na odeslání: \(store.syncState.outbox.count)").font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("syncPending")
                 }
                 Button {
                     Task { await server.syncNow() }
@@ -35,10 +38,17 @@ struct ServerSettingsSection: View {
             } else {
                 TextField("https://rocky.tvuj-tailnet.ts.net", text: $url)
                     .keyboardType(.URL)
+                    .textContentType(.URL)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .accessibilityIdentifier("serverURL")
-                SecureField("Token zařízení", text: $token)
+                // A pasted access token, not a password: a SecureField makes iOS offer to save it
+                // in Passwords. Hidden from screenshots / app switcher instead.
+                TextField("Token zařízení", text: $token)
+                    .font(.footnote.monospaced())
+                    .privacySensitive()
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
                     .accessibilityIdentifier("serverToken")
                 Button {
                     Task { await server.connect(serverURL: url, token: token) }

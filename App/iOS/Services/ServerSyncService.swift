@@ -182,6 +182,10 @@ final class ServerSyncService {
                 store.updateSync { local, state in
                     SyncMerger.resolveGone(op, to: &local, state: &state, calendar: store.calendar)
                 }
+            case 412:
+                // The server does not have the version we know (e.g. a reset server): forget it and
+                // retry the same op as a create (If-None-Match: * / If-Match: * for deletes).
+                store.updateSyncState { $0.knownVersions[op.recordID] = nil }
             default:
                 throw SyncError.http(status, "odeslání")
             }
