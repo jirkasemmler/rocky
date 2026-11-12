@@ -156,6 +156,17 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
   - Settings: toggle "Rockyho hlášky" (default **on**) and "Oslovení (5. pád)"; empty
     address = "šampione". Older settings files decode with the defaults.
 
+- **D-24 Own server (optional).** Changes D-21 / PRD §7 "data only on the device" (requested by
+  Jiri, 2026-11-12): the exercise catalog (exercises, images, how-to texts) is managed on Jiri's
+  own server (web admin + MCP for an AI agent), and sessions, postponements and the plan start are
+  synced to it. The server is reachable only inside Jiri's Tailscale network, has no telemetry
+  and is optional: without a configured server the app behaves as before. Conflicts use server
+  versions (server wins), deletes are tombstones. Spec: [SERVER-SPEC.md](SERVER-SPEC.md) v0.2,
+  reviewed by Codex and Grok.
+- **D-25 "Hotovo" = finished early.** A new end reason `completedEarly` (exercise, warm-up or
+  stretch done before the interval ends). It counts as done for checklist, rounds and stats
+  (unlike "Přeskočit") and starts the next phase immediately; not offered during rests.
+
 ## C. Not implemented yet (known gaps vs. PRD)
 
 - **Audio session calls on the main thread**: Xcode warns that `AVAudioSession.setActive` on
