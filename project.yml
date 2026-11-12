@@ -63,6 +63,10 @@ targets:
         # Voice cues keep running with the screen locked.
         UIBackgroundModes:
           - audio
+        # Rocky server: HTTPS via Tailscale; plain HTTP only to localhost / the local network
+        # (development, simulator tests). ATS stays on for everything else.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
         NSHealthShareUsageDescription: Aplikace čte tep a energii z tréninku, aby ti je ukázala v souhrnu.
         NSHealthUpdateUsageDescription: Aplikace ukládá odcvičené tréninky do aplikace Zdraví.
         ITSAppUsesNonExemptEncryption: false

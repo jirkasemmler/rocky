@@ -48,7 +48,7 @@ struct ServerSettingsSection: View {
                         if server.isSyncing { Spacer(); ProgressView() }
                     }
                 }
-                .disabled(!url.lowercased().hasPrefix("https://") || token.isEmpty || server.isSyncing)
+                .disabled(!Self.isAllowedURL(url) || token.isEmpty || server.isSyncing)
                 if let status = server.statusText {
                     Text(status).font(.footnote).foregroundStyle(.orange)
                 }
@@ -63,6 +63,12 @@ struct ServerSettingsSection: View {
         } message: {
             Text("Data v telefonu zůstanou. Katalog cviků zůstane v poslední stažené verzi.")
         }
+    }
+
+    /// HTTPS, or plain HTTP to this machine (development / simulator).
+    static func isAllowedURL(_ text: String) -> Bool {
+        let t = text.lowercased().trimmingCharacters(in: .whitespaces)
+        return t.hasPrefix("https://") || t.hasPrefix("http://127.0.0.1") || t.hasPrefix("http://localhost")
     }
 
     private var lastSyncText: String {
