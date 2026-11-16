@@ -167,6 +167,12 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
   stretch done before the interval ends). It counts as done for checklist, rounds and stats
   (unlike "Přeskočit") and starts the next phase immediately; not offered during rests.
 
+- **D-26 Server runs on trpaslik.** Docker Compose in `/opt/rocky`, data in `/srv/rocky`, with a
+  Tailscale sidecar so the server has its own tailnet name `https://rocky.taile09d6f.ts.net`
+  (the root of `trpaslik…` belongs to Holister). Chosen by Jiri 2026-11-15 after the smarthome
+  architecture notes from the DAVID session. Details and next steps:
+  [server/deploy/trpaslik/README.md](../server/deploy/trpaslik/README.md).
+
 ## C. Not implemented yet (known gaps vs. PRD)
 
 - **Audio session calls on the main thread**: Xcode warns that `AVAudioSession.setActive` on
