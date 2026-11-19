@@ -9,6 +9,8 @@ import WatchConnectivity
 @MainActor
 protocol WatchSyncing: AnyObject {
     var onMessage: ((SyncMessage) -> Void)? { get set }
+    /// The other device became reachable (live sync re-sends its state).
+    var onReachable: (() -> Void)? { get set }
     var isReachable: Bool { get }
     func activate()
     func send(_ message: SyncMessage)
@@ -17,6 +19,9 @@ protocol WatchSyncing: AnyObject {
 @MainActor
 final class WatchSyncService: NSObject, WatchSyncing {
     var onMessage: ((SyncMessage) -> Void)?
+    var onReachable: (() -> Void)?
+    /// Session + revision of the live state last put into the application context.
+    private var contextLive: (UUID, Int)?
 
     private var session: WCSession? { WCSession.isSupported() ? WCSession.default : nil }
 
@@ -39,7 +44,7 @@ final class WatchSyncService: NSObject, WatchSyncing {
             // Live commands are only useful now; durable data waits for the activation.
             switch message {
             case .sessionSaved, .sessionDiscarded, .settingsChanged, .catalogChanged: pending.append(message)
-            case .workoutStarted, .command: break
+            case .workoutStarted, .command, .liveState: break
             }
             return
         }
@@ -65,6 +70,18 @@ final class WatchSyncService: NSObject, WatchSyncing {
             if session.isReachable {
                 session.sendMessage(info, replyHandler: nil, errorHandler: nil)
             }
+        case let .liveState(live):
+            // Fast path when reachable; heartbeats and later states heal a lost message.
+            if session.isReachable {
+                session.sendMessage(info, replyHandler: nil, errorHandler: nil)
+            }
+            // Background path (latest wins): only when the state changed, not for heartbeats.
+            if contextLive.map({ $0 != live.sessionID || $1 != live.revision }) ?? true,
+               let payload = info[SyncMessage.payloadKey] {
+                contextLive = (live.sessionID, live.revision)
+                context["live"] = payload
+                try? session.updateApplicationContext(context)
+            }
         }
     }
 
@@ -87,6 +104,11 @@ extension WatchSyncService: WCSessionDelegate {
                              error: Error?) {
         guard activationState == .activated else { return }
         Task { @MainActor in self.flushPending() }
+    }
+
+    nonisolated func sessionReachabilityDidChange(_ session: WCSession) {
+        guard session.isReachable else { return }
+        Task { @MainActor in self.onReachable?() }
     }
 
     nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {

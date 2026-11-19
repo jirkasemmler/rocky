@@ -55,6 +55,18 @@ public struct EngineSnapshot: Sendable, Equatable {
     public var displaySeconds: Int { Int(remainingInPhase.rounded(.up)) }
 }
 
+/// Complete, serialisable engine state (phone ⇄ watch live sync replicates it).
+public struct EngineState: Codable, Sendable, Equatable {
+    public var status: EngineStatus
+    public var phaseIndex: Int
+    public var timings: [PhaseTiming]
+    public var startedAt: Date?
+    public var endedAt: Date?
+    public var phaseStartedAt: Date
+    public var pausedInPhase: TimeInterval
+    public var pausedAt: Date?
+}
+
 /// Deterministic workout state machine.
 ///
 /// Time accuracy comes from timestamps, never from counting ticks: the current phase
@@ -75,6 +87,24 @@ public struct WorkoutEngine: Sendable {
 
     public init(plan: WorkoutPlan) {
         self.plan = plan
+    }
+
+    /// Engine continuing from a replicated state (index clamped to the plan).
+    public init(plan: WorkoutPlan, state: EngineState) {
+        self.plan = plan
+        status = state.status
+        phaseIndex = min(max(state.phaseIndex, 0), max(plan.phases.count - 1, 0))
+        timings = state.timings
+        startedAt = state.startedAt
+        endedAt = state.endedAt
+        phaseStartedAt = state.phaseStartedAt
+        pausedInPhase = state.pausedInPhase
+        pausedAt = state.pausedAt
+    }
+
+    public var state: EngineState {
+        EngineState(status: status, phaseIndex: phaseIndex, timings: timings, startedAt: startedAt, endedAt: endedAt,
+                    phaseStartedAt: phaseStartedAt, pausedInPhase: pausedInPhase, pausedAt: pausedAt)
     }
 
     public var currentPhase: Phase? {

@@ -32,6 +32,13 @@ final class WorkoutController {
     @ObservationIgnored private var cueConfig = VoiceCueConfig()
     /// Active catalog of this device (workouts for remote starts without a definition, cue texts).
     @ObservationIgnored var catalogProvider: () -> Catalog = { .builtIn }
+    /// Live sync (D-27): revision of this workout's state, bumped by every action on either device.
+    @ObservationIgnored private var revision = 0
+    @ObservationIgnored private var lastLiveSentAt = Date.distantPast
+    /// Sessions that ended here; their (late) live states are never joined again.
+    @ObservationIgnored private var endedSessionIDs: Set<UUID> = []
+    /// Live state is re-sent this often while a workout runs (heals lost messages).
+    static let liveHeartbeat: TimeInterval = 5
     @ObservationIgnored private var rockyLinesEnabled = true
     @ObservationIgnored private var address = ""
     @ObservationIgnored let speech: SpeechSpeaking?
@@ -106,10 +113,34 @@ final class WorkoutController {
     func start(workoutID: WorkoutID, intervals: IntervalSettings, roundsOverride: Int?, kind: SessionKind,
                weight: DumbbellWeight, pre: Set<Checklist.PreItem>, sessionID: UUID = UUID(), startedAt: Date? = nil,
                broadcast: Bool = true, definition: Workout? = nil) {
+        let workout = definition ?? catalogProvider().workout(workoutID)
+        let plan = WorkoutPlan(workout: workout, intervals: intervals, roundsOverride: roundsOverride)
+        let runner = prepare(plan: plan, sessionID: sessionID, kind: kind, roundsOverride: roundsOverride,
+                             weight: weight, pre: pre)
+        revision = 1
+        let output = startedAt.map { runner.start(at: $0) } ?? runner.start()
+        let actualStart = runner.engine.startedAt ?? Date()
+        onStarted?(actualStart, broadcast)
+        handle(output)
+        if broadcast { broadcastLive() }
+        startTicking()
+    }
+
+    /// Joins (or switches to) the other device's workout from its live state.
+    private func join(_ remote: LiveWorkout) {
+        let runner = prepare(plan: remote.plan, sessionID: remote.sessionID, kind: remote.kind,
+                             roundsOverride: remote.roundsOverride, weight: weight, pre: [])
+        revision = remote.revision
+        let output = runner.adopt(remote.engine)
+        onStarted?(runner.engine.startedAt ?? Date(), false)
+        handle(output)
+        if stage == .running { startTicking() }
+    }
+
+    private func prepare(plan: WorkoutPlan, sessionID: UUID, kind: SessionKind, roundsOverride: Int?,
+                         weight: DumbbellWeight, pre: Set<Checklist.PreItem>) -> WorkoutRunner {
         stopTicking()
         let catalog = catalogProvider()
-        let workout = definition ?? catalog.workout(workoutID)
-        let plan = WorkoutPlan(workout: workout, intervals: intervals, roundsOverride: roundsOverride)
         var config = cueConfig
         config.warmUpDescription = catalog.warmUpDescription
         config.stretchDescription = catalog.stretchDescription
@@ -122,18 +153,23 @@ final class WorkoutController {
         self.weight = weight
         self.lastCueText = ""
         stage = .running
-
         audio?.beginWorkout()
-        let output = startedAt.map { runner.start(at: $0) } ?? runner.start()
-        let actualStart = runner.engine.startedAt ?? Date()
-        onStarted?(actualStart, broadcast)
-        if broadcast {
-            sync?.send(.workoutStarted(sessionID: sessionID, workoutID: workoutID, intervals: plan.intervals,
-                                       rounds: plan.rounds, kind: kind, startedAt: actualStart, origin: origin,
-                                       workout: plan.workout))
-        }
-        handle(output)
-        startTicking()
+        return runner
+    }
+
+    /// Current live state of the running (or just ended) workout.
+    private var liveState: LiveWorkout? {
+        guard let runner, let plan, stage != .idle else { return nil }
+        return LiveWorkout(sessionID: sessionID, revision: revision, workout: plan.workout, intervals: plan.intervals,
+                           rounds: plan.rounds, kind: kind, origin: origin, engine: runner.engine.state)
+    }
+
+    /// Sends the full live state to the other device (after every action, periodically, and when
+    /// the other device becomes reachable).
+    func broadcastLive() {
+        guard let live = liveState else { return }
+        lastLiveSentAt = Date()
+        sync?.send(.liveState(live))
     }
 
     func perform(_ command: SyncMessage.Command, broadcast: Bool = true) {
@@ -147,10 +183,9 @@ final class WorkoutController {
         case .abort: output = runner.abort()
         case .done: output = runner.finishEarly()
         }
-        if broadcast {
-            sync?.send(.command(sessionID: sessionID, command: command, at: Date(), origin: origin))
-        }
+        revision += 1
         handle(output)
+        if broadcast { broadcastLive() }
     }
 
     func togglePause() { perform(isPaused ? .resume : .pause) }
@@ -161,10 +196,8 @@ final class WorkoutController {
     /// Returns false when there is nothing to send (no running workout).
     @discardableResult
     func rebroadcastStart() -> Bool {
-        guard stage == .running, let plan, let startedAt = runner?.engine.startedAt else { return false }
-        sync?.send(.workoutStarted(sessionID: sessionID, workoutID: plan.workout.id, intervals: plan.intervals,
-                                   rounds: plan.rounds, kind: kind, startedAt: startedAt, origin: origin,
-                                   workout: plan.workout))
+        guard stage == .running else { return false }
+        broadcastLive()
         return true
     }
 
@@ -192,9 +225,12 @@ final class WorkoutController {
         handle(runner.tick())
     }
 
-    /// Mirrors the other device (start / pause / skip / back / abort).
+    /// Mirrors the other device. Live states (D-27) carry everything; the older start / command
+    /// messages are still understood.
     func handleRemote(_ message: SyncMessage) {
         switch message {
+        case let .liveState(remote) where remote.origin != origin:
+            handleRemoteLive(remote)
         case let .workoutStarted(id, workoutID, intervals, rounds, kind, startedAt, from, definition) where from != origin:
             // Only when idle (never over a running workout or an unsaved summary), and never the
             // same session again: the phone re-sends the start, and a late duplicate must not
@@ -210,6 +246,39 @@ final class WorkoutController {
             handle(runner.apply(command, at: at))
         default:
             break
+        }
+    }
+
+    private func handleRemoteLive(_ remote: LiveWorkout) {
+        guard !endedSessionIDs.contains(remote.sessionID) || remote.sessionID == sessionID else { return }
+        switch stage {
+        case .idle:
+            guard remote.isJoinable(at: Date()) else { return }
+            join(remote)
+        case .running:
+            guard let local = liveState, let runner else { return }
+            if remote.sessionID == sessionID {
+                guard remote.supersedes(local) else {
+                    // We are ahead (e.g. their message was older): let them catch up.
+                    if local.supersedes(remote) { broadcastLive() }
+                    return
+                }
+                revision = remote.revision
+                handle(runner.adopt(remote.engine))
+            } else if remote.supersedes(local) {
+                // Started independently on both devices: keep the earlier one (same rule there).
+                guard remote.isJoinable(at: Date()) else { return }
+                join(remote)
+            } else {
+                broadcastLive() // ours wins; make the other device switch to it
+            }
+        case .summary:
+            // Ended here (e.g. "Ukončit" on this device): if the other device still runs the same
+            // workout with an older state, send our final state so it ends too.
+            if remote.sessionID == sessionID, remote.engine.status == .running || remote.engine.status == .paused,
+               let local = liveState, local.supersedes(remote) {
+                broadcastLive()
+            }
         }
     }
 
@@ -270,6 +339,7 @@ final class WorkoutController {
 
     private func finish(at date: Date, completed: Bool) {
         stopTicking()
+        endedSessionIDs.insert(sessionID)
         stage = .summary(completed: completed)
         onEnded?(date, completed)
         // Let the final "Konec tréninku" cue finish before releasing the audio session.
@@ -286,6 +356,9 @@ final class WorkoutController {
             while !Task.isCancelled {
                 guard let self else { return }
                 self.tick()
+                if self.stage == .running, Date().timeIntervalSince(self.lastLiveSentAt) >= Self.liveHeartbeat {
+                    self.broadcastLive()
+                }
                 try? await Task.sleep(for: .milliseconds(100))
             }
         }

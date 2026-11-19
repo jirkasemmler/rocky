@@ -54,6 +54,33 @@ public final class WorkoutRunner {
         run { engine, now in engine.apply(command, at: min(date, now)) + engine.update(at: now) }
     }
 
+    /// Takes over the other device's engine state (live sync). Reports the transitions as events
+    /// (phase change, pause/resume, finished/aborted) so the app reacts as for a local command;
+    /// cues of a newly entered phase are still spoken if they are not stale.
+    @discardableResult public func adopt(_ state: EngineState) -> Output {
+        let before = engine
+        let now = timeSource.now()
+        engine = WorkoutEngine(plan: plan, state: state)
+        var events: [EngineEvent] = []
+        if before.status != .running && before.status != .paused && engine.isActive, let started = engine.startedAt {
+            events.append(.started(at: started))
+        }
+        if engine.phaseIndex != before.phaseIndex || before.status == .idle, engine.isActive,
+           let phase = engine.currentPhase {
+            events.append(.phaseStarted(phase, at: state.phaseStartedAt))
+            cursorPhase = phase.index
+            cursorElapsed = -1
+        }
+        switch (before.status, engine.status) {
+        case (.running, .paused): events.append(.paused(at: state.pausedAt ?? now))
+        case (.paused, .running): events.append(.resumed(at: now))
+        default: break
+        }
+        if engine.status == .finished, before.status != .finished { events.append(.finished(at: state.endedAt ?? now)) }
+        if engine.status == .aborted, before.status != .aborted { events.append(.aborted(at: state.endedAt ?? now)) }
+        return run(prefilled: events) { _, _ in [] }
+    }
+
     // MARK: Checklist
 
     public func toggle(_ item: Checklist.PreItem) { checklist.toggle(item) }
@@ -85,9 +112,9 @@ public final class WorkoutRunner {
 
     // MARK: Private
 
-    private func run(_ body: (inout WorkoutEngine, Date) -> [EngineEvent]) -> Output {
+    private func run(prefilled: [EngineEvent] = [], _ body: (inout WorkoutEngine, Date) -> [EngineEvent]) -> Output {
         let now = timeSource.now()
-        let events = body(&engine, now)
+        let events = prefilled + body(&engine, now)
         var cues: [VoiceCue] = []
 
         for event in events {

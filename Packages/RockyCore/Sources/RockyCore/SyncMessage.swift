@@ -27,6 +27,8 @@ public enum SyncMessage: Codable, Sendable, Equatable {
     case settingsChanged(Settings)
     /// The phone's active exercise catalog (from the server), without images (SERVER-SPEC §7).
     case catalogChanged(Catalog)
+    /// Full live state of the running workout (replaces fire-and-forget commands, D-27).
+    case liveState(LiveWorkout)
 
     public func encoded() throws -> Data {
         try JSONFilePersistenceStore.makeEncoder().encode(self)

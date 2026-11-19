@@ -173,6 +173,19 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
   architecture notes from the DAVID session. Details and next steps:
   [server/deploy/trpaslik/README.md](../server/deploy/trpaslik/README.md).
 
+- **D-27 Live sync replicates state, not commands.** Reported by Jiri 2026-11-19: with the app
+  running on both devices, "Hotovo" on the watch did not reach the phone. Causes: (1) workouts
+  started separately on both devices had different session IDs, so commands were dropped;
+  (2) commands were fire-and-forget `sendMessage`, a lost one was never repeated. Now each
+  device sends its full `LiveWorkout` (session, revision, workout definition, engine state)
+  after every action, every 5 s while running, when the other side becomes reachable, and via
+  the application context (background, latest wins). The receiver adopts it if it supersedes its
+  own: same session → higher revision (tie: phone); different sessions → the earlier start (both
+  devices apply the same rule, so they converge). Late states of ended or stale workouts are
+  ignored. Verified on paired simulators: watch start + Hotovo + pause mirrored to the phone;
+  independent starts on both devices converged on the earlier one; end on the phone ended the
+  watch. Changes D-18 for live control.
+
 ## C. Not implemented yet (known gaps vs. PRD)
 
 - **Audio session calls on the main thread**: Xcode warns that `AVAudioSession.setActive` on

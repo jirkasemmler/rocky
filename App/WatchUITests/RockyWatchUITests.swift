@@ -19,9 +19,16 @@ final class RockyWatchUITests: XCTestCase {
         start.tap()
         expect(app.staticTexts["Rozcvička"].waitForExistence(timeout: 5))
 
-        if let hold = ProcessInfo.processInfo.environment["ROCKY_SYNC_HOLD"].flatMap(UInt32.init) {
-            sleep(hold)
-        }
+        let hold = ProcessInfo.processInfo.environment["ROCKY_SYNC_HOLD"].flatMap(UInt32.init)
+        if let hold { sleep(hold) }
+
+        // "Hotovo" on the warm-up → first exercise (the phone must follow, D-27).
+        let done = app.buttons["watchDone"]
+        if !done.exists { app.swipeUp() }
+        expect(done.waitForExistence(timeout: 3), "Hotovo on the watch")
+        done.tap()
+        expect(app.staticTexts["Dřepy s činkami"].waitForExistence(timeout: 3), "first exercise after Hotovo")
+        if let hold { sleep(hold) }
 
         app.swipeUp() // controls page
         let pause = app.buttons["watchPause"]

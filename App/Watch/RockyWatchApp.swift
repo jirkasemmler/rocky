@@ -66,10 +66,11 @@ struct RockyWatchApp: App {
             case let .settingsChanged(settings):
                 store?.updateSettings(settings)
                 workout?.apply(settings: settings, speechEnabled: settings.watchSoundEnabled && settings.voiceEnabled)
-            case .workoutStarted, .command:
+            case .workoutStarted, .command, .liveState:
                 workout?.handleRemote(message)
             }
         }
+        sync.onReachable = { [weak workout] in workout?.broadcastLive() }
         sync.activate()
 
         _store = State(initialValue: store)

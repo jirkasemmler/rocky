@@ -70,12 +70,13 @@ struct RockyApp: App {
                 workout?.otherDeviceSaved(session)
             case let .sessionDiscarded(id, origin) where origin == .watch:
                 workout?.otherDeviceDiscarded(sessionID: id)
-            case .workoutStarted, .command:
+            case .workoutStarted, .command, .liveState:
                 workout?.handleRemote(message)
             default:
                 break
             }
         }
+        sync.onReachable = { [weak workout] in workout?.broadcastLive() }
         sync.activate()
 
         _store = State(initialValue: store)
