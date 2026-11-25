@@ -9,6 +9,7 @@ struct SettingsView: View {
     @State private var loaded = false
     @State private var previewSpeech = SpeechService(audio: nil)
     private let voices = SpeechService.czechVoices()
+    private let signingExpiry = SigningExpiryService.expiry()
 
     var body: some View {
         Form {
@@ -101,6 +102,16 @@ struct SettingsView: View {
             }
 
             ServerSettingsSection()
+
+            if let signingExpiry {
+                Section {
+                    LabeledContent("Podpis platí do", value: SigningExpiryService.formatted(signingExpiry))
+                } header: {
+                    Text("Instalace")
+                } footer: {
+                    Text("Potom se Rocky neotevře v telefonu ani v hodinkách, dokud ho z Macu nenainstaluješ znovu: připoj iPhone, měj u sebe odemčené hodinky a pusť bash tools/install-iphone.sh. Data zůstanou. Připomenu ti to večer předem a ráno v den vypršení.")
+                }
+            }
 
             Section("Soukromí") {
                 Text("Data zůstávají v tomto zařízení (a v hodinkách), případně na tvém vlastním serveru. Žádný účet, žádná telemetrie.")

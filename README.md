@@ -24,7 +24,7 @@ XcodeGen 2.46.0, Swift 6 language mode everywhere.
 
 | Part | State |
 |---|---|
-| `Packages/RockyCore` (pure Swift, Foundation only) | **Done and tested**: `swift test` → 151 tests, 0 failures (Linux and macOS). |
+| `Packages/RockyCore` (pure Swift, Foundation only) | **Done and tested**: `swift test` → 189 tests, 0 failures (Linux and macOS). |
 | `App/Shared`, `App/iOS`, `App/Watch` (SwiftUI) | **Build clean** (0 errors, 0 warnings) for simulator and device. |
 | Watch complication (`App/WatchWidgets`, WidgetKit) | Builds and is embedded in the watch app. Not yet placed on a watch face (manual check). |
 | UI tests | `RockyUITests` (iPhone, 3 tests) and `RockyWatchUITests` (1 test) pass on iPhone 17 Pro / Apple Watch Series 11 (46 mm) simulators, iOS / watchOS 27.2. |
@@ -51,7 +51,7 @@ rocky/
 │   │   ├── DebtPlanner.swift       slots, missed → debt → catch-up, reminders, streak
 │   │   ├── Persistence.swift       versioned local JSON store
 │   │   └── SyncMessage.swift       phone ⇄ watch messages
-│   └── Tests/RockyCoreTests/       151 XCTest cases
+│   └── Tests/RockyCoreTests/       189 XCTest cases
 ├── App/
 │   ├── Shared/                     TrainingStore, WorkoutController, SpeechService (cs-CZ),
 │   │                               WatchSyncService (WatchConnectivity), protocols

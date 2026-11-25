@@ -98,6 +98,7 @@ struct RockyApp: App {
                     guard !AppConstants.isUITesting else { return }
                     _ = await notifications.requestAuthorization()
                     await notifications.reschedule(store.upcomingReminders())
+                    await SigningExpiryService().reschedule()
                     sync.send(.settingsChanged(store.settings))
                     if store.catalog.revision > 0 { sync.send(.catalogChanged(store.catalog)) }
                     await server.syncNow()
@@ -107,7 +108,10 @@ struct RockyApp: App {
                     store.refresh()
                     workout.tick()
                     let reminders = store.upcomingReminders()
-                    Task { await notifications.reschedule(reminders) }
+                    Task {
+                        await notifications.reschedule(reminders)
+                        if !AppConstants.isUITesting { await SigningExpiryService().reschedule() }
+                    }
                     server.syncIfStale()
                 }
                 .onChange(of: store.settings) { _, settings in

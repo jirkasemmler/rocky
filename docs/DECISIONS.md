@@ -186,6 +186,21 @@ Items marked **confirmed by Jiri, 2026-11-03** were reviewed and accepted by Jir
   independent starts on both devices converged on the earlier one; end on the phone ended the
   watch. Changes D-18 for live control.
 
+- **D-28 The app reminds before its signing expires; the install script renews it.** Reported by
+  Jiri 2026-11-25: the watch app stopped opening. Cause: the build is signed with a free Personal
+  Team, whose provisioning profiles live 7 days, and Xcode reissues a profile only after it
+  expired. The watch profile from 16 Nov ran out on 22 Nov, while the phone profile (reissued
+  19 Nov) was still valid. Now (1) `tools/install-iphone.sh` moves Rocky's cached profiles aside
+  when any has less than 6.5 days left (`ROCKY_FRESH_PROFILES=1` forces it), so phone, watch and
+  complication get a full 7 days together; they are put back when the build fails. The watch
+  targets are built first with the watch as destination, otherwise new watch profiles list only
+  the iPhone and the watch refuses the install. (2) The phone app reads the expiry of the three
+  profiles in its bundle (`SigningExpiry` in RockyCore, earliest wins), shows it in Nastavení →
+  Instalace and schedules local notifications for 18:00 the day before and 8:00 on the expiry day
+  (fallback: 3 h before). The reminders exist only after the app was opened once after install.
+  Renewal needs the watch unlocked and next to the phone; without a visible watch the script
+  installs the phone only, leaves the watch profiles alone and says the watch was not renewed.
+
 ## C. Not implemented yet (known gaps vs. PRD)
 
 - **Audio session calls on the main thread**: Xcode warns that `AVAudioSession.setActive` on
